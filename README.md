@@ -1,0 +1,1 @@
+This repository is for Module 4 of MB5370 at JCU. It is focused on expanded our skills in R to learn about the best practice of coding. This inlcudes version control, data visualisation, and data wrangling. 
