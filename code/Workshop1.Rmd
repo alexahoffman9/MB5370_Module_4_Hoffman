@@ -78,30 +78,46 @@ ggplot(data = mpg) +
   geom_point(mapping = aes(x = displ, y = hwy, alpha = class))
 ```
 Another warning!!
-Question: When would using alpha (or size be appropriate??) In a dense point cloud where you can see clusters a bit better
+Question: When would using alpha (or size be appropriate??) In a dense point cloud where you can see clusters a bit better.
 
 # Change point shape by class:
 ```{r}
 ggplot(data = mpg) + 
   geom_point(mapping = aes(x = displ, y = hwy, shape = class))
 ```
-
+Warning: G2;H2;Warningh: [38;5;232mThe shape palette can deal with a maximum of 6 discrete values because more than 6 becomes difficult to discriminate [36mℹ[38;5;232m you have requested 7 values. Consider specifying shapes manually if you need that many of them.
 
 # Make all points blue
 ```{r}
 ggplot(data = mpg) + 
   geom_point(mapping = aes(x = displ, y = hwy), color = "blue")
 ```
+What happens if you map an aesthetic to something other than a variable name, like aes(colour = displ < 5)? Note, you’ll also need to specify x and y.
+```{r}
+ggplot(data = mpg) + 
+  geom_point(mapping = aes(x = displ, y = hwy, colour = displ < 5))
+```
+This creates everything after 5 as 'FALSE'.
 
 
 # Troubleshooting 
 
+Despite this, there will be some other common problems you’re likely to face. Perhaps the main one with ggplot is having the + in the wrong place. It has to go at the end of the line (not the start of the next line), which is particularly important if you’re running your script line-by-line.
 
+Example:
+ggplot(data = mpg) 
++ geom_point(mapping = aes(x = displ, y = hwy)) 
+the + should be on top line
 
-
+As with all programming, there are some really useful methods for debugging your code. Revisit the Module 1 workshop where we discussed using online help, reading the R help pages, learning to read your own code carefully and precisely, and trying to interpret the error messages you’ve received. 
+As a very last resort, you can always ask the instructor (who will probably just tell you to do the above anyway).
 
 
 # Faceting
+Faceting allows you to split your data into subsets. AKA can have multiple panels in a figure.
+
+To facet your plot using a single variable, use facet_wrap(). Facet wrap syntax is in the function of a formula (kind of like a linear model formula), where the ~ dictates which variable you want to subset your data with. 
+Note: only use facet_wrap() for discrete variables.
 
 ## facet_wrap
 Split the plot out by car type (class)
@@ -113,6 +129,9 @@ ggplot(data = mpg) +
 
 
 ## facet_grid
+If you want to do this with more than one variable, then use facet_grid(). Here you need two variables using ~ to split them up.
+Facet plot on the combination of two variables using facet_grid(). Facet grid needs two variables separated by a ~.
+
 A separate facet for each combination of drive-type (e.g. 4WD) * number of cylinders
 ```{r}
 ggplot(data = mpg) + 
@@ -123,6 +142,7 @@ Note that there are no occurrences of 5 cylinder 4WDs OR RWD vehicles!
 
 
 ## facet_grid by just row (or column)
+Use a . if you do not want to facet in the rows or column dimension. Note what happens in this case:
 ```{r}
 ggplot(data = mpg) + 
   geom_point(mapping = aes(x = displ, y = hwy)) + 
@@ -130,14 +150,21 @@ ggplot(data = mpg) +
   #facet_grid(. ~ cyl) # Alternatively
 
 ```
+```{r}
+ggplot(data = mpg) + 
+  geom_point(mapping = aes(x = displ, y = hwy)) + 
+  #facet_grid(cyl ~ .)
+  facet_grid(. ~ cyl) # Alternatively
+
+```
 
 # Exercise:
 Read ?facet_wrap. What does nrow do? What does ncol do? What other options control the layout of the individual panels? 
 
 ```{r}
-
+# ?facet_wrap
 ```
-
+nrow, ncol	-> Number of rows and columns.
 
 # Lines
 We already used points:
