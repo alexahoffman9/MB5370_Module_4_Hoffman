@@ -317,21 +317,33 @@ ggplot() +
 ```
 No, these will not look different. In the first graph the data and mapping are set into the overarching portion of the code that creates them as global mapping applied to all subsequent geoms. Whereas the one below specifies the same mappings and data, just in each of the geoms used. 
 
-# 2.22 Transformations and stats
+# 2.22 Transformations and Stats
 
-## Load data
+### Load data
 ```{r}
 data("diamonds")
 glimpse(diamonds)
 ```
 
-## Bar plot
+### Bar plot
 ```{r}
 ggplot(data = diamonds) + 
   geom_bar(mapping = aes(x = cut))
 ```
+On the x-axis, the chart displays cut, a variable from the diamonds dataset. On the y-axis, it displays count, but count is not a variable in diamonds! Many graphs, like scatterplots, plot the raw values of your dataset. Other graphs, like bar charts, calculate new values to plot:
+ - bar charts, histograms, and frequency polygons “bin” your data and then plot bin counts (the number of points that fall in each bin).
+ - smoothers fit a model to your data and then plot predictions from the model.
+ - boxplots compute a robust summary of the distribution and then display a specially formatted box.
+The algorithm used to calculate new values for a graph is called a stat, short for statistical transformation.
 
-# Overriding defaults
+You can generally use geoms and stats interchangeably. For example, can recreate the previous plot using 'stat_count'.
+```{r}
+ggplot(data = diamonds) + 
+  stat_count(mapping = aes(x = cut))
+```
+## 22.22.2 Overriding defaults
+You should always learn about the given defaults, as it can pose implications for your data. 
+
 Make some new data
 ```{r}
 demo <- tribble(
@@ -345,22 +357,18 @@ demo <- tribble(
 demo
 ```
 
-
 ```{r}
 ggplot(data = demo) +
   geom_bar(mapping = aes(x = cut, y = freq), stat = "identity")
 ```
-Question: Why did we specify now specify a y axis?
+Question: Why did we specify now a specific y axis?
+We specified a specific y axis because we are moving past the default of count on the y-axis and instead using absolute frequency. 
 
 # What if we want to know the proportion rather than the absolute frequency?
 ```{r}
 ggplot(data = diamonds) + 
-  geom_bar(mapping = aes(x = cut, y = stat(prop), group = 1))
+  geom_bar(mapping = aes(x = cut, y = after_stat(prop), group = 1))
 ```
-
-Question: does anyone get the warning that's in the workbook?
-Warning: `stat(prop)` was deprecated in ggplot2 3.4.0.
-If so, can use # geom_bar(mapping = aes(x = cut, y = stage(after_stat = prop), group = 1))
 
 # Plotting statistical details
 ```{r}
