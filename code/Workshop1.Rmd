@@ -1,8 +1,8 @@
 ---
 title: "MB5370 Module 04. Workshop 1 - Introduction"
-author: "Ben Cresswell"
+author: "Alexa Hoffman"
 output: html_document
-date: "2024-03-22"
+date: "2026-03-05"
 ---
 
 ```{r setup, include=FALSE}
@@ -18,102 +18,112 @@ library("tidyverse")
 
 
 # Load the data (mpg is built into ggplot2)
-```{r}
+```{r message=FALSE, warning=FALSE, results='hide'}
 data(mpg)
 ```
 
 
 # Quick data checks
-```{r}
+```{r message=FALSE, warning=FALSE, results='hide'}
 head(mpg)
 glimpse(mpg)
 summary(mpg)
 ```
 
 
-# Create first plot
-```{r}
+# 2.17 Create your first ggplot
+Using data from mpg, found in the ggplot package.
+```{r message=FALSE, warning=FALSE}
 ggplot(data = mpg) + 
   geom_point(mapping = aes(x = displ, y = hwy))
 ```
+This plot shows the relationship between the engine size and the fuel efficiency. Visually representing that cars from 1999 - 2008 with larger engines typically have lower fuel efficiency. 
 
 The plot shows a negative relationship between engine size (displ) and fuel efficiency (hwy). In other words, cars with big engines use more fuel. What does this say about fuel efficiency and engine size?
 
 
-
-# Understanding grammar of graphics
+# 2.18 Understanding the 'grammar of graphics"
 What happens if we just try to run ggplot on its own?
-```{r}
+```{r message=FALSE, warning=FALSE, results='hide'}
 ggplot() 
 # Or with just the data specified?
 ggplot(data = mpg)
 ```
+We need to map some aesthetics!! It is blank.
 
-We need to map some aesthetics!!
+## 2.18.1 Graphing template
+In all cases, ggplot code will follow a generic template like below:
+```{r message=FALSE, warning=FALSE, eval=FALSE}
+ggplot(data = <DATA>) + 
+  <GEOM_FUNCTION>(mapping = aes(<MAPPINGS>))
+```  
 
-# When you’re creating a plot, you essentially need two attributes of a plot: a geom and aesthetics.
-```{r}
+When you’re creating a plot, you essentially need two attributes of a plot: a geom and aesthetics.
+```{r message=FALSE, warning=FALSE}
 ggplot(data = mpg) + 
   geom_point(mapping = aes(x = displ, y = hwy))
 ```
 
-
-# Change point colour by class:
-```{r}
+## 2.18.2 Aesthetic mappings
+### Change point colour by class:
+```{r message=FALSE, warning=FALSE}
 ggplot(data = mpg) + 
   geom_point(mapping = aes(x = displ, y = hwy, colour = class))
 ```
+This allows to see patterns within types of cars, as each class of car is a different color. 
 
-# Change point size by class:
+### Change point size by class:
 ```{r}
 ggplot(data = mpg) + 
   geom_point(mapping = aes(x = displ, y = hwy, size = class))
 ```
-Note the warning!!!
+Note the warning!!! Instead of using color to differentiate between classes, this instead uses 'size', which makes it difficult to distinguish classes from one another.
 
-
-# Change transparency (alpha) by class
+### Change transparency (alpha) by class
 ```{r}
 ggplot(data = mpg) + 
   geom_point(mapping = aes(x = displ, y = hwy, alpha = class))
 ```
 Another warning!!
-Question: When would using alpha (or size be appropriate??) In a dense point cloud where you can see clusters a bit better.
+Question: When would using alpha (or size be appropriate??) Alpha would be better used in a dense point cloud where you can see clusters a bit better. Size is better used on a non-discrete variable when looking at a more continuous scale. 
 
-# Change point shape by class:
+### Change point shape by class:
 ```{r}
 ggplot(data = mpg) + 
   geom_point(mapping = aes(x = displ, y = hwy, shape = class))
 ```
-Warning: G2;H2;Warningh: [38;5;232mThe shape palette can deal with a maximum of 6 discrete values because more than 6 becomes difficult to discriminate [36mℹ[38;5;232m you have requested 7 values. Consider specifying shapes manually if you need that many of them.
+Warning: G2;H2;Warningh: [38;5;232mThe shape palette can deal with a maximum of 6 discrete values because more than 6 becomes difficult to discriminate [36mℹ[38;5;232m you have requested 7 values. Consider specifying shapes manually if you need that many of them.
 
-# Make all points blue
-```{r}
+### Make all points blue
+```{r message=FALSE, warning=FALSE}
 ggplot(data = mpg) + 
   geom_point(mapping = aes(x = displ, y = hwy), color = "blue")
 ```
+### Aestheic something other than variable name.
 What happens if you map an aesthetic to something other than a variable name, like aes(colour = displ < 5)? Note, you’ll also need to specify x and y.
-```{r}
+```{rmessage=FALSE, warning=FALSE}
 ggplot(data = mpg) + 
   geom_point(mapping = aes(x = displ, y = hwy, colour = displ < 5))
 ```
 This creates everything after 5 as 'FALSE'.
 
 
-# Troubleshooting 
+# 2.19 Troubleshooting 
 
 Despite this, there will be some other common problems you’re likely to face. Perhaps the main one with ggplot is having the + in the wrong place. It has to go at the end of the line (not the start of the next line), which is particularly important if you’re running your script line-by-line.
 
 Example:
+```{r message=FALSE, warning=FALSE, eval=FALSE}
 ggplot(data = mpg) 
 + geom_point(mapping = aes(x = displ, y = hwy)) 
-the + should be on top line
+# the + should be on top line
+```
 
 As with all programming, there are some really useful methods for debugging your code. Revisit the Module 1 workshop where we discussed using online help, reading the R help pages, learning to read your own code carefully and precisely, and trying to interpret the error messages you’ve received. 
 As a very last resort, you can always ask the instructor (who will probably just tell you to do the above anyway).
 
 
-# Faceting
+# 2.20 Faceting
 Faceting allows you to split your data into subsets. AKA can have multiple panels in a figure.
 
 To facet your plot using a single variable, use facet_wrap(). Facet wrap syntax is in the function of a formula (kind of like a linear model formula), where the ~ dictates which variable you want to subset your data with. 
@@ -148,32 +158,36 @@ ggplot(data = mpg) +
   geom_point(mapping = aes(x = displ, y = hwy)) + 
   facet_grid(cyl ~ .)
   #facet_grid(. ~ cyl) # Alternatively
-
 ```
 ```{r}
 ggplot(data = mpg) + 
   geom_point(mapping = aes(x = displ, y = hwy)) + 
   #facet_grid(cyl ~ .)
   facet_grid(. ~ cyl) # Alternatively
-
 ```
 
-# Exercise:
+# Exercise 1:
 Read ?facet_wrap. What does nrow do? What does ncol do? What other options control the layout of the individual panels? 
 
 ```{r}
 # ?facet_wrap
 ```
-nrow, ncol	-> Number of rows and columns.
+nrow, ncol	-> Number of rows and columns, respectively. The other options that control the layout of individual panels are: 
+- scales: control how axes behave across panels, and can be useful when panel values differ a lot. 
+- space: controls whether panel change size depending on their scale
+- dir: controls how panels fill across the page, and where the filling starts
+- strip.position: controls where the strip labels appear
+- switch: moves facet labels to opposite axis
+- drop: alots to keep or removed unused panels
+- axis: controls whether axis lines are drawn in interior panels
+- axis.labels: controls whether the numbers/text labels appear on the interior axes
 
-# Lines
+# 2.21 Fitting simple lines
 We already used points:
 ```{r}
 ggplot(data = mpg) + 
   geom_point(mapping = aes(x = displx, y = hwy))
 ```
-
-
 However, ggplot2 can use a variety of geom objects to represent the data. Here, we might want to use bar plots, line charts, boxplots and so on. Well we can handle this issue in ggplot directly using a different geom to plot the same data. Here, instead of plotting points, we will use a smooth line. 
 
 # To display the same data as a smooth line fit through the points use geom_smooth().
