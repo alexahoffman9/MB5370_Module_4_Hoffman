@@ -190,39 +190,48 @@ ggplot(data = mpg) +
 ```
 However, ggplot2 can use a variety of geom objects to represent the data. Here, we might want to use bar plots, line charts, boxplots and so on. Well we can handle this issue in ggplot directly using a different geom to plot the same data. Here, instead of plotting points, we will use a smooth line. 
 
-# To display the same data as a smooth line fit through the points use geom_smooth().
+## To display the same data as a smooth line fit through the points use geom_smooth().
 ```{r}
 ggplot(data = mpg) + 
-  geom_smooth(mapping = aes(x = displ, y = hwy))
+  geom_line(mapping = aes(x = displ, y = hwy))
 ```
 ### Question: whey don't we use geom_line() here? What would that look like? ###
+geom_line connects the observed data points in the order of the variable on the x-axis. It The overall trend may be harder to see with the noise. geom_smooth on the other hand fits a model to the data, displaying the smooth trend rather than the raw data points.
 
-
+This graph displays both on top of each other.
+```{r message=FALSE, warning=FALSE}
+ggplot(data = mpg, aes(x = displ, y = hwy)) +
+  geom_point() +
+  geom_line() +
+  geom_smooth()
+```
 So let’s recap. A geom is an object that your plot uses to represent the data. To change the geom type in your plot, simply change the geom function that you add to your plot template. Sometimes you may want to try a few things out, in which case you could use comments to help you remember what worked and what didn’t. 
 
 ## Using comments (#)
-```{r}
+```{r message=FALSE, warning=FALSE}
 ggplot(data = mpg) + 
   #geom_point(mapping = aes(x = displ, y = hwy)) + # points horrible 
-  geom_smooth(mappings = aes(x = displ, y = hwy)) # try smooth line
+  geom_smooth(mapping = aes(x = displ, y = hwy)) # try smooth line
 ```
 
 Question: how does R work out where to plot the line??? Can use the chunk output to inform us. Can also use the help menu.
+For the graph above, using geom_smooth, R used the model 'loess' using the formula y ~ x. This method is often used 
+for datasets with less than 1,000 observations. The method (e.g. 'loess') is chosen based on the size of the largest group across all data panels. 'loess' also uses a t-based approximation for the standard error calculation. 
 
-# Changing linetype
+## Changing linetype
 ```{r}
 ggplot(data = mpg) + 
   geom_smooth(mapping = aes(x = displ, y = hwy, linetype = drv)) # Can also use "lty = " for the same result
 ```
 
 
-# Grouping
+## Grouping
 ```{r}
 ggplot(data = mpg) +
   geom_smooth(mapping = aes(x = displ, y = hwy, group = drv))
 ```
  
-# Change line colour based on drv value
+## Change line colour based on drv value
 ```{r}
 ggplot(data = mpg) +
   geom_smooth(
@@ -231,11 +240,11 @@ ggplot(data = mpg) +
   )
 ```
 
-# Multiple geoms
-We already did this one way
+## Multiple geoms
+Here we will plot multiple geoms on the single plot. All you need to do is to add them together. This one is nice for showing the underlying data and how it relates to the geom_smooth line.
 ```{r}
 ggplot(data = mpg) + 
-  geom_point(mapping = aes(xx = displ, y = hwy)) +
+  geom_point(mapping = aes(x = displ, y = hwy)) +
   geom_smooth(mapping = aes(x = displ, y = hwy))
 ```
 
@@ -245,9 +254,10 @@ ggplot(data = mpg, mapping = aes(x = displ, y = hwy)) +
   geom_point() + 
   geom_smooth()
 ```
+By placing the mapping in the 'ggplot' portion of the code, ggplot allows you to pass these ‘overarching’ mappings to the ggplot() argument, making them global mappings that are applied to every single subsequent geom. Much in the same way that the data argument is also global, it is used every time a geom is called.
 
 
-# Can still manipulate each geom/layer separately:
+## Can still manipulate each geom/layer separately:
 ```{r}
 ggplot(data = mpg, mapping = aes(x = displ, y = hwy)) + 
   geom_point(mapping = aes(color = class)) + 
@@ -256,23 +266,44 @@ ggplot(data = mpg, mapping = aes(x = displ, y = hwy)) +
 
 Now we have different colours to indicate the raw data (geom_point) and one colour for the overall relationship (geom_smooth). Neat!
 
-
+You also can specify different data for various layers depending on what you are trying to display.
 ```{r}
 ggplot(data = mpg, mapping = aes(x = displ, y = hwy)) + 
   geom_point(mapping = aes(color = class)) + 
   geom_smooth(data = filter(mpg, class == "subcompact"), se = FALSE)
 ```
+This graph specified the smooth line for just the class of subcompact cars.
+
 Question: what does the "se = FALSE" do?
+'se' displays the standard error confidence band around the smooth line. By switching it to 'FALSE' that removes the band.
 
-
-# Exercise:
+# Exercise 2:
 1.  What geom would you use to draw a line chart? A boxplot? A histogram? An area chart?
+ - Line chart: geom_line
+ - Boxplot: geom_boxplot
+ - Histogram:geom_histogram
+ - Area chart: geom_area
+ 
 2.  Run this code in your head and predict what the output will look like. Then, run the code in R and check your predictions.
 
 ```{r}
+# Line chart
+ggplot(data = mpg, mapping = aes(x = displ, y = hwy)) + 
+  geom_line()
 
+# Boxplot
+ggplot(data = mpg, mapping = aes(x = displ, y = hwy)) + 
+  geom_boxplot(mapping = aes(x = displ, y = hwy, group = drv))
+
+# Histogram
+ggplot(data = mpg, mapping = aes(x = displ)) + 
+  geom_histogram(binwidth = 0.1)
+
+# Area chart
+ggplot(mpg, aes(x = displ, y = hwy, fill = class)) +
+  geom_area()
 ```
-
+I was unable to use the same exact variables for every one of these types of 'geom' as some are better suited to categorical vs. continuous data or one vs. two variables.
 
 3.  Will these two graphs look different? Why/why not?
 ```{r}
@@ -284,9 +315,9 @@ ggplot() +
   geom_point(data = mpg, mapping = aes(x = displ, y = hwy)) + 
   geom_smooth(data = mpg, mapping = aes(x = displ, y = hwy))
 ```
+No, these will not look different. In the first graph the data and mapping are set into the overarching portion of the code that creates them as global mapping applied to all subsequent geoms. Whereas the one below specifies the same mappings and data, just in each of the geoms used. 
 
-
-# Transformations and stats
+# 2.22 Transformations and stats
 
 ## Load data
 ```{r}
@@ -294,7 +325,7 @@ data("diamonds")
 glimpse(diamonds)
 ```
 
-# Bar plot
+## Bar plot
 ```{r}
 ggplot(data = diamonds) + 
   geom_bar(mapping = aes(x = cut))
