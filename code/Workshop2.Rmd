@@ -99,6 +99,152 @@ ggplot(mpg, aes(displ, hwy)) +
   scale_y_continuous(limits = c(10,30)) +
   scale_colour_discrete()
 ```
+#3.4 Axis Ticks
+```{r}
+ggplot(mpg, aes(displ, hwy)) +
+  geom_point() +
+  scale_y_continuous(breaks = seq(15, 40, by = 5))
+```
+Can also use "NULL" to suppress labels completely.
+```{r}
+ggplot(mpg, aes(displ, hwy)) +
+  geom_point() +
+  scale_x_continuous(labels = NULL) +
+  scale_y_continuous(labels = NULL)
+```
+#3.5 Legend and colour schemes
+To control overall position of the legend, use theme() setting. 
+Running each separately to see how it changes the plot:
+```{r}
+base <- ggplot(mpg, aes(displ, hwy)) +
+  geom_point(aes(colour = class))
+
+base + theme(legend.position = "left")
+base + theme(legend.position = "top")
+base + theme(legend.position = "bottom")
+base + theme(legend.position = "right") # the default
+base + theme(legend.position = "none") #if want to remove the legend
+```
+#3.6 Replacing the scale
+There are two types of scales you’re mostly likely to want to switch out: continuous position scales and colour scales.
+It’s very useful to plot transformations of your variables. For example, as we’ve seen in diamond prices it’s easier to see the precise relationship between carat and price if we log transform them using a ggplot2 function for scale precisely for this purpose.
+```{r}
+ggplot(diamonds, aes(carat, price)) +
+  geom_bin2d() + 
+  scale_x_log10() + 
+  scale_y_log10()
+```
+Another scale that is frequently customised is the colour scale. From a data visualisation point of view, this is among the most important changes you can make to a base ggplot.
+```{r}
+ggplot(mpg, aes(displ, hwy)) +
+  geom_point(aes(color = drv))
+
+ggplot(mpg, aes(displ, hwy)) +
+  geom_point(aes(color = drv)) +
+  scale_colour_brewer(palette = "Set1") #this changes the colour scale from the previous ggplot
+```
+If there are just a few colours, you can add a redundant shape mapping. This will also help ensure your plot is interpretable in black and white (for many publications).
+```{r}
+ggplot(mpg, aes(displ, hwy)) +
+  geom_point(aes(color = drv, shape = drv)) +
+  scale_colour_brewer(palette = "Set1")
+```
+When you have predefined colours you want to use you can set them yourself, using scale_colour_manual()
+```{r}
+presidential %>%
+  mutate(id = 33 + row_number()) %>%
+  ggplot(aes(start, id, colour = party)) +
+    geom_point() +
+    geom_segment(aes(xend = end, yend = id)) +
+    scale_colour_manual(values = c(Republican = "red", Democratic = "blue"))
+```
+A very popular color package used is the viridis. Use 'scale_colour_viridis()' 
+provided by the package
+```{r}
+library("viridis")
+library("hexbin")
+
+df <- tibble( # note we're just making a fake dataset so we can plot it
+  x = rnorm(10000),
+  y = rnorm(10000)
+)
+ggplot(df, aes(x, y)) +
+  geom_hex() + # a new geom!
+  coord_fixed()
+
+ggplot(df, aes(x, y)) +
+  geom_hex() +
+  viridis::scale_fill_viridis() +
+  coord_fixed() #woahh this is cool
+```
+There are many different palettes to try, including the Wes Anderson palette!
+In order to use the Wes Anderson color palette with our data, we need to use the wes_palette and scale_color_gradientn commands with ggplot, aes, and geom_point.
+```{r eval=FALSE}
+library(wesanderson)
+names(wes_palettes)
+
+"BottleRocket1"  "BottleRocket2"  "Rushmore1"      "Rushmore"       "Royal1"         "Royal2"        "Zissou1"        "Darjeeling1"    "Darjeeling2"    "Chevalier1"     "FantasticFox1"  "Moonrise1"     "Moonrise2"      "Moonrise3"      "Cavalcanti1"    "GrandBudapest1" "GrandBudapest2" "IsleofDogs1"   "IsleofDogs2"  
+```
+
+#3.7 Themes
+Can change the entire theme of your plot, which allows changes to some or all of the non-data aspects.
+ggplot2 has 8 themes by default, and there are mnay more in the add-on package ggthemes.
+```{r}
+ggplot(mpg, aes(displ, hwy)) +
+  geom_point(aes(color = class)) +
+  geom_smooth(se = FALSE) +
+  theme_bw()
+```
+```{r}
+ggplot(mpg, aes(displ, hwy)) +
+  geom_point(aes(color = class)) +
+  geom_smooth(se = FALSE) +
+  theme_light()
+```
+```{r}
+ggplot(mpg, aes(displ, hwy)) +
+  geom_point(aes(color = class)) +
+  geom_smooth(se = FALSE) +
+  theme_classic()
+```
+```{r}
+ggplot(mpg, aes(displ, hwy)) +
+  geom_point(aes(color = class)) +
+  geom_smooth(se = FALSE) +
+  theme_dark()
+```
+Additionally, you can customise your own themes by setting some or all of the arguments
+to theme(), this allows for consistency between your graphs.
+EX:
+```{r eval=FALSE}
+theme (panel.border = element_blank(),
+        panel.grid.minor.x = element_blank(),
+        panel.grid.minor.y = element_blank(),
+        legend.position="bottom",
+        legend.title=element_blank(),
+        legend.text=element_text(size=8),
+        panel.grid.major = element_blank(),
+        legend.key = element_blank(),
+        legend.background = element_blank(),
+        axis.text.y=element_text(colour="black"),
+        axis.text.x=element_text(colour="black"),
+        text=element_text(family="Arial")) 
+```
+
+#3.8 Saving and exporting plots
+Once plots are created, you want to save them to your disk/computer in a format that allows for repeated sharing (e.g. JPEG).
+
+The best way is typically ggsave().
+First way to use ggsave, that saves it to the working directory:
+```{r}
+ggplot(mpg, aes(displ, hwy)) + geom_point()
+
+ggsave("my-plot.pdf")
+#> Saving 7 x 4.32 in image
+```
+Sometimes you may want to change the dimensions of plots, which 'width' and 'height' arguments can be added to this function for that. 
+
+Lastly, can use knitr in Rmd to export results with the code.
 
 
 
