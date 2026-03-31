@@ -11,7 +11,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 
 # load tidyverse packages
-```{r}
+```{r message=FALSE, warning=FALSE}
 library("tidyverse")
 ```
 
@@ -38,10 +38,11 @@ ggplot(mpg, aes(displ, hwy)) +
   geom_smooth(se.e = FALSE) +
   labs(title = "Fuel efficiency generally decreases with engine size")
 ```
+
 For more text, can add in other functions:
   - 'subtitle'
   - 'caption'
-```{r}
+```{r message=FALSE, warning=FALSE}
 ggplot(mpg, aes(displ, hwy)) +
   geom_point(aes(color = class)) +
   geom_smooth(se = FALSE) +
@@ -51,8 +52,9 @@ ggplot(mpg, aes(displ, hwy)) +
     caption = "Data from fueleconomy.gov"
   )
 ```
+
 labs() can also be used to replace axis labels and legend titles
-```{r}
+```{r message=FALSE, warning=FALSE}
 ggplot(mpg, aes(displ, hwy)) +
   geom_point(aes(colour = class)) +
   geom_smooth(se = FALSE) +
@@ -63,9 +65,10 @@ ggplot(mpg, aes(displ, hwy)) +
   )
 ```
 
-#3.2 Annotations
+# 3.2 Annotations
+
 When you want to add text to the plot itself. You can use 'geom_text()' to add text labels to the plots. This works the same way as 'geom_point', just in text vs shape form.
-```{r}
+```{rmessage=FALSE, warning=FALSE}
 best_in_class <- mpg %>%
   group_by(class) %>%
   filter(row_number(desc(hwy)) == 1)
@@ -74,6 +77,7 @@ ggplot(mpg, aes(displ, hwy)) +
   geom_point(aes(colour = class)) +
   geom_text(aes(label = model), data = best_in_class)
 ```
+
 This filters the data and adds a label that calls in the values from the dataframe. In this case it helps to pull out the most fuel efficient cars and label it within the plot.
 
 When labels overlap (like above) it can be adjusted with the 'nudge()' function
@@ -81,16 +85,18 @@ or other packages for text wrapping.
 
 They can be good tools for highlighting data such as min and max.
 
-#3.3 Scales
+# 3.3 Scales
+
 There are automated scales that exist in defult in ggplot2. 
 Ex:
-```{r}
+```{r message=FALSE, warning=FALSE}
 ggplot(mpg, aes(displ, hwy)) +
   geom_point(aes(colour = class))
 ```
+
 To provide limits you’ll need to offer a character vector showing the start and end of your limit (e.g. c(0,12)). Note also that: ?scale_x_continuous() has plenty of other arguments, so don’t forget to explicitly state the argument you’re providing these limits for (e.g. limits = c(0,12)). 
 
-```{r}
+```{r message=FALSE, warning=FALSE}
 ?scale_x_continuous() 
 
 ggplot(mpg, aes(displ, hwy)) +
@@ -99,23 +105,28 @@ ggplot(mpg, aes(displ, hwy)) +
   scale_y_continuous(limits = c(10,30)) +
   scale_colour_discrete()
 ```
-#3.4 Axis Ticks
-```{r}
+
+# 3.4 Axis Ticks
+
+```{r message=FALSE, warning=FALSE}
 ggplot(mpg, aes(displ, hwy)) +
   geom_point() +
   scale_y_continuous(breaks = seq(15, 40, by = 5))
 ```
+
 Can also use "NULL" to suppress labels completely.
-```{r}
+```{r message=FALSE, warning=FALSE}
 ggplot(mpg, aes(displ, hwy)) +
   geom_point() +
   scale_x_continuous(labels = NULL) +
   scale_y_continuous(labels = NULL)
 ```
-#3.5 Legend and colour schemes
+
+# 3.5 Legend and colour schemes
+
 To control overall position of the legend, use theme() setting. 
 Running each separately to see how it changes the plot:
-```{r}
+```{r message=FALSE, warning=FALSE}
 base <- ggplot(mpg, aes(displ, hwy)) +
   geom_point(aes(colour = class))
 
@@ -125,17 +136,20 @@ base + theme(legend.position = "bottom")
 base + theme(legend.position = "right") # the default
 base + theme(legend.position = "none") #if want to remove the legend
 ```
-#3.6 Replacing the scale
+
+# 3.6 Replacing the scale
+
 There are two types of scales you’re mostly likely to want to switch out: continuous position scales and colour scales.
 It’s very useful to plot transformations of your variables. For example, as we’ve seen in diamond prices it’s easier to see the precise relationship between carat and price if we log transform them using a ggplot2 function for scale precisely for this purpose.
-```{r}
+```{r message=FALSE, warning=FALSE}
 ggplot(diamonds, aes(carat, price)) +
   geom_bin2d() + 
   scale_x_log10() + 
   scale_y_log10()
 ```
+
 Another scale that is frequently customised is the colour scale. From a data visualisation point of view, this is among the most important changes you can make to a base ggplot.
-```{r}
+```{r message=FALSE, warning=FALSE}
 ggplot(mpg, aes(displ, hwy)) +
   geom_point(aes(color = drv))
 
@@ -143,14 +157,16 @@ ggplot(mpg, aes(displ, hwy)) +
   geom_point(aes(color = drv)) +
   scale_colour_brewer(palette = "Set1") #this changes the colour scale from the previous ggplot
 ```
+
 If there are just a few colours, you can add a redundant shape mapping. This will also help ensure your plot is interpretable in black and white (for many publications).
-```{r}
+```{r message=FALSE, warning=FALSE}
 ggplot(mpg, aes(displ, hwy)) +
   geom_point(aes(color = drv, shape = drv)) +
   scale_colour_brewer(palette = "Set1")
 ```
+
 When you have predefined colours you want to use you can set them yourself, using scale_colour_manual()
-```{r}
+```{r message=FALSE, warning=FALSE}
 presidential %>%
   mutate(id = 33 + row_number()) %>%
   ggplot(aes(start, id, colour = party)) +
@@ -158,9 +174,10 @@ presidential %>%
     geom_segment(aes(xend = end, yend = id)) +
     scale_colour_manual(values = c(Republican = "red", Democratic = "blue"))
 ```
+
 A very popular color package used is the viridis. Use 'scale_colour_viridis()' 
-provided by the package
-```{r}
+provided by the package.
+```{r message=FALSE, warning=FALSE}
 library("viridis")
 library("hexbin")
 
@@ -177,46 +194,52 @@ ggplot(df, aes(x, y)) +
   viridis::scale_fill_viridis() +
   coord_fixed() #woahh this is cool
 ```
+
 There are many different palettes to try, including the Wes Anderson palette!
 In order to use the Wes Anderson color palette with our data, we need to use the wes_palette and scale_color_gradientn commands with ggplot, aes, and geom_point.
-```{r eval=FALSE}
+```{r message=FALSE, warning=FALSE, eval=FALSE}
 library(wesanderson)
 names(wes_palettes)
 
 "BottleRocket1"  "BottleRocket2"  "Rushmore1"      "Rushmore"       "Royal1"         "Royal2"        "Zissou1"        "Darjeeling1"    "Darjeeling2"    "Chevalier1"     "FantasticFox1"  "Moonrise1"     "Moonrise2"      "Moonrise3"      "Cavalcanti1"    "GrandBudapest1" "GrandBudapest2" "IsleofDogs1"   "IsleofDogs2"  
 ```
 
-#3.7 Themes
+# 3.7 Themes
+
 Can change the entire theme of your plot, which allows changes to some or all of the non-data aspects.
 ggplot2 has 8 themes by default, and there are mnay more in the add-on package ggthemes.
-```{r}
+```{r message=FALSE, warning=FALSE}
 ggplot(mpg, aes(displ, hwy)) +
   geom_point(aes(color = class)) +
   geom_smooth(se = FALSE) +
   theme_bw()
 ```
-```{r}
+
+```{r message=FALSE, warning=FALSE}
 ggplot(mpg, aes(displ, hwy)) +
   geom_point(aes(color = class)) +
   geom_smooth(se = FALSE) +
   theme_light()
 ```
-```{r}
+
+```{r message=FALSE, warning=FALSE}
 ggplot(mpg, aes(displ, hwy)) +
   geom_point(aes(color = class)) +
   geom_smooth(se = FALSE) +
   theme_classic()
 ```
-```{r}
+
+```{r message=FALSE, warning=FALSE}
 ggplot(mpg, aes(displ, hwy)) +
   geom_point(aes(color = class)) +
   geom_smooth(se = FALSE) +
   theme_dark()
 ```
+
 Additionally, you can customise your own themes by setting some or all of the arguments
 to theme(), this allows for consistency between your graphs.
 EX:
-```{r eval=FALSE}
+```{r message=FALSE, warning=FALSE, eval=FALSE}
 theme (panel.border = element_blank(),
         panel.grid.minor.x = element_blank(),
         panel.grid.minor.y = element_blank(),
@@ -231,12 +254,13 @@ theme (panel.border = element_blank(),
         text=element_text(family="Arial")) 
 ```
 
-#3.8 Saving and exporting plots
+# 3.8 Saving and exporting plots
+
 Once plots are created, you want to save them to your disk/computer in a format that allows for repeated sharing (e.g. JPEG).
 
 The best way is typically ggsave().
 First way to use ggsave, that saves it to the working directory:
-```{r}
+```{r message=FALSE, warning=FALSE}
 ggplot(mpg, aes(displ, hwy)) + geom_point()
 
 ggsave("my-plot.pdf")

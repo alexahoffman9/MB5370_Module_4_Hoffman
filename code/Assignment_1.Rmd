@@ -1,0 +1,60 @@
+---
+title: "MB5370 Module 04. Workshop 1 - Introduction"
+author: "Alexa Hoffman"
+output: html_document
+date: "2026-03-05"
+editor_options: 
+  markdown: 
+    wrap: sentence
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# 2.25 Assignment: Plot Deconstruction
+
+```{r message=FALSE, warning=FALSE}
+library(tidyverse)
+library(RColorBrewer)
+
+# Load data
+lgbtq <- read.csv("/Users/alexa/Desktop/Data_Analysis/MB5370_Techniques/MB5370_Module_4_Hoffman/data/lgbtq_acceptance.csv")
+
+# Re-ordering most to least accepting
+lgbtq$relationship <- factor(lgbtq$relationship, 
+                              levels = c("Siblings", "Friends", "Parents", "Co-workers", "Extended family"))
+
+# Reference line data
+lgbtq_ref <- data.frame(
+  relationship = factor(c("Siblings", "Friends", "Parents", "Co-workers", "Extended family"),
+                        levels = c("Siblings", "Friends", "Parents", "Co-workers", "Extended family")),
+  all_lgbtq = c(69, 61, 46, 45, 27)
+)
+
+# Plot
+ggplot(data = lgbtq, mapping = aes(x = group, y = percent, fill = group)) +
+  geom_bar(stat = "identity", position = "dodge") +
+  geom_hline(data = lgbtq_ref, aes(yintercept = all_lgbtq),
+             linetype = "dashed", colour = "grey40",
+             inherit.aes = FALSE) +
+   scale_fill_brewer(palette = "Dark2") +
+  facet_wrap(~ relationship, nrow = 1) +
+  labs(
+    title = "Not all LGBTQ adults experience the same acceptance",
+    subtitle = "Transgender adults consistently report lower acceptance, particularly from parents and co-workers",
+    x = NULL,
+    y = "% saying all have been accepting",
+    fill = "Identity group",
+    caption = "Source: Pew Research Center, Jan. 8-19, 2025"
+  ) +
+  theme_classic() +
+  theme(
+    legend.position = "bottom",
+    axis.text.x = element_blank(),
+    axis.ticks.x = element_blank(),
+    strip.background = element_blank()
+  )
+
+ggsave("lgbtq_acceptance_plot.png", width = 10, height = 6, dpi = 300)
+```
