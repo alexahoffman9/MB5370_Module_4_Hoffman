@@ -1,5 +1,5 @@
 ---
-title: "MB5370 Module 04. Workshop 1 - Introduction"
+title: "MB5370 Module 04. Assignment 1 - Plot Deconstruction"
 author: "Alexa Hoffman"
 output: html_document
 date: "2026-03-05"
