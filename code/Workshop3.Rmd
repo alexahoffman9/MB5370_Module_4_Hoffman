@@ -1,0 +1,90 @@
+---
+title: "MB5370 Module 04. Workshop 3 - Data Wrangling"
+author: "Alexa Hoffman"
+output: html_document
+date: "2026-03-28"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+
+#4.2 Workshop Overview - Objectives
+This workshop will focus on data tidying using `tidyr`:
+- Learn the principles of tidy data using tidyr
+- Learn how to import datasets into R
+- Learn how to join data with dplyr. 
+
+Tibbles: are essentially dataframes, helps to handle issues of aging programming language. Aka 'future proof' dataframes.
+
+#4.3 Tidying data using Tidyr
+Tidyr is a part of the larger tidyverse package. By creating tidy data it allows for more tie analyzing data and less manipulating it
+load tidyverse package:
+```{r message=FALSE, warning=FALSE}
+library("tidyverse")
+```
+
+#4.4 Tidy data
+There are many ways to display a given data set, but not every way is easy to use for analysis. For example, the format of a field datasheet might be convenient for data collection and entry, but it might not be a useful way to display the data when you go to analyse it. The process of rearranging your data to a format more appropriate for analysis is the process of “tidying.”
+
+EX:
+```{r}
+table1
+```
+```{r}
+table2
+```
+```{r}
+table3
+```
+All three of these tables display the same data, but only `table1` expresses 'tidy' data. These data follow the... 
+**Three interrelated rules of tidy data:**
+*1. Each variable must have its own column.*
+*2. Each observation must have its own row.*
+*3. Each value must have its own cell.*
+
+These three rules are interrelated because it’s impossible to only satisfy two of the three. That interrelationship leads to an even simpler set of practical instructions:
+  *1. Put each dataset in a tibble (special dataframe)*
+  *2. Put each variable in a column.*
+
+Now, why do we care about having tidy data? We said before, tidy data is useful data and here’s why: 
+  *1. Having a consistent data structure makes it easier to learn the tools that work with it, and* 
+  *2. Having your variables in columns allows R to use its ability to work with vectors of values. This makes transforming tidy data a smoother process.*
+
+All packages in the tidyverse are designed to work with tidy data. Including ggplot2.
+
+**Pipes**
+A pipe is really only designed to help you better understand what the code is doing. It takes the data (left of the pipe) and applies the function (right of pipe). I’ll use both `%>%`, and `|>`  which achieve the exact same thing (|> is brand new in base R, %>% only works in tidyr and magrittr packages)
+```{r}
+#Compute rate per 10,000
+table1 %>%
+  mutate(rate = cases / population * 10000)
+
+#Compute rate per year
+table1 %>%
+  count(year, wt = cases)
+
+#Visualise changes over time
+library(ggplot2)
+ggplot(table1, aes(year, cases)) +
+  geom_line(aes(group = country), colour = "grey50") +
+  geom_point(aes(colour = country, shape = country))
+```
+##4.4.1 Exercises
+1. For each of the sample tables, describe what each observation and each column represents.
+`table1` 
+- Each observation is for a country, where each column respresents a separate variable including: a single year, number of cases for that year in that country, and population of that country on the given year. 
+`table2`
+- Each observation is a country, but not every column is a variable. Each year the given country has two observations, one for the number of cases and the second for the population. The columns then become more confusing as they are 'type' and 'count' with type representing the variables of cases and population, and the 'count' as the numerical value of those variables. 
+`table3`
+- Each observation is a country and year, but then the columns do not represents the variables. Instead for each year in the country the cases per population is expresses as a rate, expressed as a fraction. The only way you know its cases per population is if you look back at table1. Rate could be a variable in its own column, but would need to be calculated from two separate columns with cases and population as separate variables for it to be expressed as true tidy data.Additionally rate needs to be expressed as a frequency, so you would need to multiply the fraction against your unit of measure. Ex: cases/pop * 10,000 (cases of TB per 10,000 people in that given population)
+
+2. Sketch out the processes you would use to calculate the `rate` for `table2` and `table3`. You will need to perform four operations:
+
+`table2`
+Because cases and population are stored in the same column (count) separated by a type label, you would first need to split the data into two separate tables, one containing only the rows where type = "cases" and one where type = "population". Then match them into one table by country and year so each row has both values side by side (like table 1). Then divide cases by population and multiply by 10,000. Then store (mutate) the result as a new column called `rate` alongside country and year.
+
+`table3`
+The rate column already contains both pieces of information but stored as a single character string (e.g. "745/19987071") rather than two separate numbers. You would need to split that string at the "/" to separate the numerator (cases) and denominator (population) into two new numeric columns. Then divide cases by population and multiply by 10,000. Then store the result as a new numeric rate column, replacing the original.
