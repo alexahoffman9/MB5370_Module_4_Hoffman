@@ -11,53 +11,59 @@ knitr::opts_chunk$set(echo = TRUE)
 
 
 
-#4.2 Workshop Overview - Objectives
+# 4.2 Workshop Overview - Objectives
 This workshop will focus on data tidying using `tidyr`:
-- Learn the principles of tidy data using tidyr
-- Learn how to import datasets into R
-- Learn how to join data with dplyr. 
+
+  - Learn the principles of tidy data using tidyr
+  - Learn how to import datasets into R
+  - Learn how to join data with dplyr. 
 
 Tibbles: are essentially dataframes, helps to handle issues of aging programming language. Aka 'future proof' dataframes.
 
-#4.3 Tidying data using Tidyr
+# 4.3 Tidying data using Tidyr
 Tidyr is a part of the larger tidyverse package. By creating tidy data it allows for more tie analyzing data and less manipulating it
 load tidyverse package:
 ```{r message=FALSE, warning=FALSE}
 library("tidyverse")
 ```
 
-#4.4 Tidy data
+# 4.4 Tidy data
 There are many ways to display a given data set, but not every way is easy to use for analysis. For example, the format of a field datasheet might be convenient for data collection and entry, but it might not be a useful way to display the data when you go to analyse it. The process of rearranging your data to a format more appropriate for analysis is the process of “tidying.”
 
 EX:
-```{r}
+```{r message=FALSE, warning=FALSE}
 table1
 ```
-```{r}
+```{r message=FALSE, warning=FALSE}
 table2
 ```
-```{r}
+```{r message=FALSE, warning=FALSE}
 table3
 ```
 All three of these tables display the same data, but only `table1` expresses 'tidy' data. These data follow the... 
 **Three interrelated rules of tidy data:**
-*1. Each variable must have its own column.*
-*2. Each observation must have its own row.*
-*3. Each value must have its own cell.*
 
-These three rules are interrelated because it’s impossible to only satisfy two of the three. That interrelationship leads to an even simpler set of practical instructions:
-  *1. Put each dataset in a tibble (special dataframe)*
-  *2. Put each variable in a column.*
+  1. Each variable must have its own column.
+  2. Each observation must have its own row.
+  3. Each value must have its own cell.
+
+
+These three rules are interrelated because it’s impossible to only satisfy two of the three. That interrelationship leads to an even **simpler set of practical instructions:**
+ 
+  1. Put each dataset in a tibble (special dataframe)
+  2. Put each variable in a column.
+
 
 Now, why do we care about having tidy data? We said before, tidy data is useful data and here’s why: 
-  *1. Having a consistent data structure makes it easier to learn the tools that work with it, and* 
-  *2. Having your variables in columns allows R to use its ability to work with vectors of values. This makes transforming tidy data a smoother process.*
+  
+  1. Having a consistent data structure makes it easier to learn the tools that work with it, and
+  2. Having your variables in columns allows R to use its ability to work with vectors of values. This makes transforming tidy data a smoother process.
 
 All packages in the tidyverse are designed to work with tidy data. Including ggplot2.
 
-**Pipes**
+**Pipes**:
 A pipe is really only designed to help you better understand what the code is doing. It takes the data (left of the pipe) and applies the function (right of pipe). I’ll use both `%>%`, and `|>`  which achieve the exact same thing (|> is brand new in base R, %>% only works in tidyr and magrittr packages)
-```{r}
+```{r message=FALSE, warning=FALSE}
 #Compute rate per 10,000
 table1 %>%
   mutate(rate = cases / population * 10000)
@@ -72,16 +78,21 @@ ggplot(table1, aes(year, cases)) +
   geom_line(aes(group = country), colour = "grey50") +
   geom_point(aes(colour = country, shape = country))
 ```
-##4.4.1 Exercises
-1. For each of the sample tables, describe what each observation and each column represents.
+
+## 4.4.1 Exercises
+
+**1. For each of the sample tables, describe what each observation and each column represents.**
+
 `table1` 
 - Each observation is for a country, where each column respresents a separate variable including: a single year, number of cases for that year in that country, and population of that country on the given year. 
+
 `table2`
 - Each observation is a country, but not every column is a variable. Each year the given country has two observations, one for the number of cases and the second for the population. The columns then become more confusing as they are 'type' and 'count' with type representing the variables of cases and population, and the 'count' as the numerical value of those variables. 
+
 `table3`
 - Each observation is a country and year, but then the columns do not represents the variables. Instead for each year in the country the cases per population is expresses as a rate, expressed as a fraction. The only way you know its cases per population is if you look back at table1. Rate could be a variable in its own column, but would need to be calculated from two separate columns with cases and population as separate variables for it to be expressed as true tidy data.Additionally rate needs to be expressed as a frequency, so you would need to multiply the fraction against your unit of measure. Ex: cases/pop * 10,000 (cases of TB per 10,000 people in that given population)
 
-2. Sketch out the processes you would use to calculate the `rate` for `table2` and `table3`. You will need to perform four operations:
+**2. Sketch out the processes you would use to calculate the `rate` for `table2` and `table3`. You will need to perform four operations:**
 
 `table2`
 Because cases and population are stored in the same column (count) separated by a type label, you would first need to split the data into two separate tables, one containing only the rows where type = "cases" and one where type = "population". Then match them into one table by country and year so each row has both values side by side (like table 1). Then divide cases by population and multiply by 10,000. Then store (mutate) the result as a new column called `rate` alongside country and year.
@@ -89,28 +100,29 @@ Because cases and population are stored in the same column (count) separated by 
 `table3`
 The rate column already contains both pieces of information but stored as a single character string (e.g. "745/19987071") rather than two separate numbers. You would need to split that string at the "/" to separate the numerator (cases) and denominator (population) into two new numeric columns. Then divide cases by population and multiply by 10,000. Then store the result as a new numeric rate column, replacing the original.
 
-#4.5 Pivoting data to make it tidy
+# 4.5 Pivoting data to make it tidy
 The first step in tidying the data is to understand what each variable and observation actually means. Sometimes this is obvious and sometimes you’ll need to consult with the person(s) who collected the data. By understanding tidy data structure, you streamline input of data in the future. 
 
 Once you understand the data you’re looking at, the second step is to resolve one of the two common problems with untidy data. These are:
-1. One variable is spread across multiple columns
-2. One observation is scattered across multiple rows
+
+  1. One variable is spread across multiple columns
+  2. One observation is scattered across multiple rows
 
 To fix these we will **pivot** our data (i.e. move it around) into tidy form using two functions in `tidyr`: `pivot_longer()` to lengthen data and `pivot_wider()` to widen data. 
 
-##4.5.1 Lengthening datasets
+## *4.5.1 Lengthening datasets*
 Pivoting data to be longer is the most common tidying issue that is faced. `pivot_longer()` makes datasets “longer” by increasing the number of rows and decreasing the number of columns, solving those common problems of data values in the variable name (e.g wk1, wk2, wk3, etc.).
 
 Let’s see this in action by using `pivot_longer()` in an example given by R4DS:
 The billboard dataset records the billboard rank of songs in the year 2000.
 
-```{r}
+```{r message=FALSE, warning=FALSE}
 billboard
 ```
 In this dataset, each observation is a song. The first three columns (artist, track and date.entered) are variables that describe the song. Then we have 76 columns (wk1-wk76) that describe the rank of the song in each week. Here, the column names are one variable (the week) and the cell values are another (the rank). To tidy the billboard dataset we will use pivot_longer().
 
 This is the case where actual data values (wk1, wk2 etc.)  are in the column name, with each observation (row of data) being a song. We need to have the data in a format where each row is an observation (so-called long format).
-```{r}
+```{r message=FALSE, warning=FALSE}
 billboard |>
   pivot_longer(
     cols = starts_with("wk"),
@@ -119,14 +131,15 @@ billboard |>
   )
 ```
 *Three key arguments to the `pivot_longer()` function:*
-- `cols` which specifies the columns you want to pivot (the ones that aren’t variables). Note: you could either use `!c(artist, track, date.entered)` OR `starts_with('wk')` because the cols argument uses the same syntax as `select()`.
-- `names_to` which names the variable stored in the column names. We chose to name that variable `week`.
-- `values_to` which names the variable stored in the cell values that we named `rank`
+
+  - `cols` which specifies the columns you want to pivot (the ones that aren’t variables). Note: you could either use `!c(artist, track, date.entered)` OR `starts_with('wk')` because the cols argument uses the same syntax as `select()`.
+  - `names_to` which names the variable stored in the column names. We chose to name that variable `week`.
+  - `values_to` which names the variable stored in the cell values that we named `rank`
 
 Note that in the code `"week"` and `"rank"` are quoted because they are new variables that we are creating, they don’t exist yet in the data when we run the `pivot_longer()` call.
 
 There are a number of NAs in the above output. It looks like “Baby Don’t Cry” by 2 Pac was only in the top 100 for 7 out of 76 weeks. Therefore, when we lengthened the data, the weeks where it wasn't on the charts became ‘NA.’ These NA’s were forced to exist because of the structure of the dataset not because they are actually unknown. Therefore, we can simply ask `pivot_longer` to remove them by adding the argument `values_drop_na = TRUE` as shown below:
-```{r}
+```{r message=FALSE, warning=FALSE}
 billboard |>
   pivot_longer(
     cols = starts_with("wk"),
@@ -136,9 +149,9 @@ billboard |>
   )
 ```
 
-##4.5.2 Pivoting longer
+## *4.5.2 Pivoting longer*
 We’ve just seen how pivoting can help reshape our data but let's look further into what pivoting actually does to our data. We will start with a simple dataset and once again follow an example from R4DS. Note the use of the term “tribble” here (not the same as tibble) but also a type of dataframe that allows us to construct small tibbles by hand. Don’t get too caught up in this, simply follow along with the example.
-```{r}
+```{r message=FALSE, warning=FALSE}
 df <- tribble(
   ~id, ~bp1, ~bp2,
   "A", 100, 120,
@@ -147,12 +160,13 @@ df <- tribble(
 )
 ```
 We want our new (tidy) dataset to have 3 variables:
-1. `id` which already exists
-2. `measurement` the column names
-3. `value` the cell values
+
+  1. `id` which already exists
+  2. `measurement` the column names
+  3. `value` the cell values
 
 To make this happen the pivot longer function needs to be used on df:
-```{r}
+```{r message=FALSE, warning=FALSE}
 df |>
   pivot_longer(
     cols = bp1:bp2,
@@ -162,23 +176,23 @@ df |>
 ```
 For the visualization of how this data transformed, refer to the module workbook and [Section 5.3.3 in the textbook](https://r4ds.hadley.nz/data-tidy#many-variables-in-column-names).
 
-##4.5.3 Widening datasets
+## *4.5.3 Widening datasets*
 In less common cases, we may need to widen a dataset rather than lengthen it. Widening is essentially the opposite of lengthening and we do so by using the function `pivot_wider()`. `pivot_wider()` allows us to handle an observation if it is scattered across multiple rows. Example would be `table2` -> `table1`
 In table2 we see an observation is a country in a year with the observation spread across two rows (cases or population and their values). The table needs to be made wider to move the value of cases into one column, and those of population into another column to comply with the 3 rules of tidy data.
 
 EX:
-```{r}
+```{r message=FALSE, warning=FALSE}
 cms_patient_experience
 ```
 The core unit being studied is an organization. But in this format, each organization is spread across six rows with one row for each measurement taken in the survey organization. We can see the complete set of values for `measure_cd` and `measure_title` by using `distinct()`:
-```{r}
+```{r message=FALSE, warning=FALSE}
 cms_patient_experience |>
   distinct(measure_cd, measure_title)
 ```
 Neither of these columns will make particularly great variable names: `measure_cd` doesn’t hint at the meaning of the variable and `measure_title` is a long sentence containing spaces. `measure_cd` will be used as the source for the new column names for now, but in a real analysis should create own variable names that are both short and meaningful.
 
 `pivot_wider()` has the opposite interface to `pivot_longer()`: instead of choosing new column names, we need to provide the existing columns that define the values (`values_from`) and the column name (`names_from`):
-```{r}
+```{r message=FALSE, warning=FALSE}
 cms_patient_experience |>
   pivot_wider(
     names_from = measure_cd,
@@ -186,7 +200,7 @@ cms_patient_experience |>
   )
 ```
 The above output doesn’t look quite right; we still seem to have multiple rows for each organization. That’s because, we also need to tell `pivot_wider()` which column or columns have values that uniquely identify each row; in this case those are the variables starting with "`org`":
-```{r}
+```{r message=FALSE, warning=FALSE}
 cms_patient_experience |> 
   pivot_wider(
     id_cols = starts_with("org"),
@@ -196,9 +210,9 @@ cms_patient_experience |>
 ```
 This gives the output that we want.
 
-##4.5.4 Pivoting wider
+## *4.5.4 Pivoting wider*
 To understand what pivot_wider() does to our data, let’s once again use a simple example. This time we have two patients with id s A and B, and we have three blood pressure (bp) measurements from patient A and two from patient B:
-```{r}
+```{r message=FALSE, warning=FALSE}
 df <- tribble(
   ~id, ~measurement, ~value,
   "A",        "bp1",    100,
@@ -210,7 +224,7 @@ df <- tribble(
 ```
 
 The names will be taken from the `measurement` column using the `names_from()`, abd the values from the `value` column using the `values_from()`:
-```{r}
+```{r message=FALSE, warning=FALSE}
 df |>
   pivot_wider(
     names_from = measurement,
@@ -221,21 +235,21 @@ df |>
 **Below breaks down how the function actually achieves this, step by step:**
 
 To start the pivoting process, pivot_wider() needs to first figure out what will go in the rows and columns. The new column names will be the unique values of measurement.
-```{r}
+```{r message=FALSE, warning=FALSE}
 df |> 
   distinct(measurement) |> 
   pull()
 ```
 
 When `pivot_wider()` is deciding what the rows should be, it looks at whichever columns aren't being used to make the new column names or fill in the values. In this case that's just the id column, so each unique patient becomes one row. These leftover columns are called `id_cols`. In a more complex dataset there could be several of these — for example country and year — and each unique combination of them would become its own row.
-```{r}
+```{r message=FALSE, warning=FALSE}
 df |> 
   select(-measurement, -value) |> 
   distinct()
 ```
 
 pivot_wider() then combines these results to generate an empty dataframe
-```{r}
+```{r message=FALSE, warning=FALSE}
 df |> 
   select(-measurement, -value) |> 
   distinct() |> 
@@ -243,9 +257,9 @@ df |>
 ```
 
 ## 4.5.5 Exercises
-### 1. Why are pivot_longer() and pivot_wider() not perfectly symmetrical? Carefully consider the following example. 
 
-```{r}
+**1. Why are pivot_longer() and pivot_wider() not perfectly symmetrical? Carefully consider the following example.** 
+```{r message=FALSE, warning=FALSE}
 stocks <- tibble(
   year   = c(2015, 2015, 2016, 2016),
   half  = c(   1,    2,     1,    2),
@@ -264,4 +278,277 @@ When the data were formatted into the wider format, the numerical values of year
 
 `names_ptypes = list(year = double())` tells R to confirm the year column as a number and not text.
 
+**2. Why does this code fail?**
+```{r message=FALSE, warning=FALSE, eval=FALSE}
+table4a %>% 
+  pivot_longer(c(1999, 2000), names_to = "year", values_to = "cases")
+```
+
+```{r message=FALSE, warning=FALSE}
+table4a
+```
+In the original table structure 1999 and 2000 are expressed as column names, indicated by the backticks in the `table4a`. In the code, they are listed without the backticks in the (c(1999, 2000)) portion of the code, which is telling R to interpret them as numeric values (numbers 1999 and 2000) rather than column names. Since the table only has 3 columns, it can't find the 1999th and 2000th column as indicated in the error.
+
+Corrected code, by adding in the backticks around the years:
+```{r message=FALSE, warning=FALSE}
+table4a %>% 
+  pivot_longer(c(`1999`, `2000`), names_to = "year", values_to = "cases")
+```
+
+**3. Consider the sample tibble below. Do you need to make it wider or longer? What are the variables?**
+```{r message=FALSE, warning=FALSE}
+preg <- tribble(
+  ~pregnant, ~male, ~female,
+  "yes",     NA,    10,
+  "no",      20,    12
+)
+```
+
+The variables are:
+
+  - sex: male or female
+  - pregnant: yes or no
+  - count: the number
+
+Therefore you would need to make it longer by collapsing the male and female columns into a sex column and creating one called count.
+
+Corrected code:
+```{r message=FALSE, warning=FALSE}
+preg %>%
+  pivot_longer(c(male, female), names_to = "sex", values_to = "count")
+```
+## *4.5.6 Separating and uniting data tables*
+In table3, we see one column (rate) that contains two variables (cases and population). To address this, we can use the separate() function which separates one column into multiple columns wherever you designate.
+```{r message=FALSE, warning=FALSE}
+table3
+```
+
+We need to split the rate column up into two variables: 1) cases and 2) population. separate() will take the name of the column we want to split and the names of the columns we want it split into:
+```{r}
+table3 %>% 
+  separate(rate, into = c("cases", "population"))
+```
+
+Note from [R4DS](https://tidyr.tidyverse.org/reference/separate.html): By default, separate() will split values wherever it sees a non-alphanumeric character (i.e. a character that isn’t a number or letter). For example, in the code above, `separate()` split the values of rate at the forward slash characters. If you wish to use a specific character to separate a column, you can pass the character to the sep argument of separate(). 
+Re-written code taking this into account:
+```{r}
+table3 %>%
+  separate(rate, into = c("cases", "population"), sep = "/")
+```
+
+In the new table, both `cases` and `population` are listed as characters, which is the functions default. As the values in the columns are actually numbers, need to specify to `separate()` to convert them using `convert = TRUE`, which lists them as integers.
+```{r}
+table3 %>% 
+  separate(rate, into = c("cases", "population"), convert = TRUE)
+```
+
+Can also split by position in a number:
+```{r}
+table3 %>% 
+  separate(year, into = c("century", "year"), sep = 2)
+```
+In this case it can make the data less tidy, but can be useful for other analysis. 
+
+**R4DS - How position splitting works:**
+
+`sep = 2 means` "split after the 2nd character from the left":
+So "1999" becomes "19" and "99",
+And "2000" becomes "20" and "00"
+
+*The positive/negative part:*
+
+  - Positive numbers count from the left — `sep = 2` splits after the 2nd character
+  - Negative numbers count from the right — `sep = -2` would split 2 characters from the right end, giving "199" and "9" for 1999
+
+  - The "one less than names" rule just means if you're splitting into 2 pieces (century and year) you only need 1 split point. If you were splitting into 3 pieces you'd need 2 split points, e.g. `sep = c(2, 4)`.
+  
+**Using `unite():`**
+This is the inverse function of `separate()`, allowing for the combination of multiple columns into one. `unite()` takes a data frame, the name of the new variable and a set of columns to combine using `dplyr::select()`. 
+
+EX: Merging centry and year from above
+```{r}
+table5 %>%
+  unite(new, century, year, sep = "")
+```
+Here we need to add `sep =""` because we don’t want any separator (the default is to add an underscore _)
+
+# 4.6 Handling missing values
+Missing values are common in datasets, and learning how to handle them is key in analysis.
+Missing values are sometimes populated with `NA` or sometimes they could be simply missing altogether from the data (i.e. a blank cell, the worst!). 
+
+## *4.6.1 Explicit missing values*
+
+The way data is missing matters to analysis:
+
+  - *Explicit absence* is represented by `NA`, which indicates the presence of *absent* data. You know for sure there is no data value.
+  - *Implicit absence* is when there is a blank cell just indicates the absence of data, leaving you unsure if there is a value or not.
+
+**Tools for creating or eliminating explicit values (NA cells)**
+
+R4DS [chapter 19](https://r4ds.hadley.nz/missing-values#explicit-missing-values): A common use for missing values is as a data entry convenience. When data is entered by hand, missing values sometimes indicate that the value in the previous row has been repeated (or carried forward):
+```{r}
+treatment <- tribble(
+  ~person,           ~treatment, ~response,
+  "Derrick Whitmore", 1,         7,
+  NA,                 2,         10,
+  NA,                 3,         NA,
+  "Katherine Burke",  1,         4
+)
+```
+These values can be filled with `tidyr::fill()`, which works like `select()`, taking a set of columns:
+```{r}
+treatment |>
+  fill(everything())
+```
+This treatment is sometimes called “last observation carried forward”, or **locf** for short. You can use the `.direction` argument to fill in missing values that have been generated in more exotic ways.
+
+## *4.6.2 Fixed values*
+Sometimes missing values represent some fixed and known value, most commonly 0. You can use `dplyr::coalesce()` to replace them:
+```{r}
+x <- c(1, 4, 5, 7, NA)
+coalesce(x, 0)
+```
+
+sometimes you’ll encounter the opposite problem where some other concrete value actually represents a missing value. This typically happens when data is generated from an older software that can’t properly represent missing values so it uses something like 99 or -999 in place of the missing value. You can fix this with `dplyr::na_if()`:
+*Note to self:This happened with some data from my thesis analysis*
+```{r}
+x <- c(1,4,5,7,-99)
+na_if(x, -99)
+```
+
+## *4.6.3 NaN*
+
+One special type of missing value worth mentioning is NaN or Not a Number. It typically behaves the same as NA but in some rare cases you may need to distinguish it using `is.nan(x)`:
+```{r eval=FALSE}
+x <- c(NA, NaN)
+x * 10
+#> [1]  NA NaN
+x == 1
+#> [1] NA NA
+is.na(x)
+#> [1] TRUE TRUE
+```
+
+*How it differs from NA:*
+
+  - NA means the value is missing — it was never recorded or doesn't exist in your data
+  - NaN means the value is mathematically undefined — you tried to calculate something that has no valid answer
+  
+*Why they behave almost the same:*
+As the example shows, both NA and NaN behave identically in most operations — multiplying by 10 gives NA/NaN back, comparisons return NA. `is.na()` returns `TRUE` for both, which is why in most data analysis you don't need to worry about the difference.
+
+*When it matters:*
+If you specifically need to know whether a value is NaN rather than just any kind of missing value, you use `is.nan()` — which returns `TRUE` only for `NaN` and `FALSE` for regular `NA`. This is quite rare in practice but can come up when doing mathematical modelling or statistical calculations where undefined results sneak into your data.
+**In short — treat NaN like NA unless you have a specific reason to distinguish them.**
+
+## *4.6.4 Implicit missing values*
+Missing values can be implicitly missing, if an entire row of data is just absent from the data.
+
+Example of the difference:
+```{r}
+stocks <- tibble(
+  year  = c(2020, 2020, 2020, 2020, 2021, 2021, 2021),
+  qtr   = c(   1,    2,    3,    4,    2,    3,    4),
+  price = c(1.88, 0.59, 0.35,   NA, 0.92, 0.17, 2.66)
+)
+```
+
+The dataset has 2 missing observations: 
+
+  - The price in the fourth quarter of 2020 is explicitly missing, because its value is NA.
+  - The price for the first quarter of 2021 is implicitly missing, because it simply does not appear in the dataset.
+
+Sometimes you want to make implicit missings explicit in order to have something physical to work with. In other cases, explicit missings are forced upon you by the structure of the data and you want to get rid of them. Remember how we did this when we used`pivot_wider()`?
+
+Here’s another example where if we pivot `stocks` wider to put the quarter in the columns, both missing values become explicit:
+```{r}
+stocks |>
+  pivot_wider(
+  names_from = qtr, 
+  values_from = price
+  )
+```
+Advanced Note: See [here](https://r4ds.hadley.nz/missing-values#complete) for how to use `tidyr::complete()` to generate missing values in special cases.
+
+# 4.7 How can I import data into R?
+In this section we will use the `readr` package (part of the tidyverse) to read plain-text files such as .csv files into R. Make sure tidyverse is already loaded from the previous section.
+
+## *4.7.1 CSV files*
+
+This is the most common file type for representing tabular data. CSV stands for *comma-separated values*. There are others, like .dbf or .xlsx, each of which are used by various software. By far the most universal is .csv, which is an extremely simple database structure that is efficient in space (ie. small file size) and agnostic to any one software.
+Here is what a simple CSV looks like, where data values are separated by commas, which dictate where the columns will lie:
+```{r eval=FALSE}
+Student ID,Full Name,favourite.food,mealPlan,AGE 1,Sunil Huffmann,Strawberry yoghurt,Lunch only,4 2,Barclay Lynn,French fries,Lunch only,5 3,Jayendra Lyne,N/A,Breakfast and lunch,7 4,Leon Rossini,Anchovies,Lunch only, 5,Chidiegwu Dunkel,Pizza,Breakfast and lunch,five 6,Güvenç Attila,Ice cream,Lunch only,6
+```
+
+To read your .csv file into R use read_csv() from the readr package, which comes installed with the tidyverse. When using the read_csv() function, the first argument is the path to the file on your computer.
+Also note R’s peculiar use of slashes - to import data you need to use forward slashes (‘/’) or a double backlash (‘\\’). 
+The example below shows that we have a data file called students.csv and it lives in a folder called ‘data’ on your computer. Note this isn’t a real file you have, just an example so this code won’t work.
+```{r eval=FALSE}
+? read_csv
+students <- read_csv("C://data/students.csv")
+```
+
+To use `read_csv()` this is an example directly loaded from the textbook (https://pos.it/r4ds-students-csv)
+```{r}
+students <- read_csv("https://pos.it/r4ds-students-csv")
+```
+When you run `read_csv()`, it prints out a message telling you the number of rows and columns of data, the delimiter that was used, and the column specifications (names of columns organized by the type of data the column contains). It also prints out some information about retrieving the full column specification and how to quiet this message. This message is an integral part of `readr`.
+
+## *4.7.2 Practical advice*
+Once you read data in, the first step should include assessing whether it is tidy. That means understanding the nature of your variables, and asking the questions:
+
+  - Are observations in rows?  
+  - Are variables in columns?
+
+You will also need to check whether the data are valid. Are there any odd variables? Things that seems strange, like spelling errors or some other issue that R will have with it? 
+Let’s take another look at the students data with that in mind.
+```{r}
+students
+```
+
+The N/A problem
+In the favourite.food column, student 3 has "N/A" written as text — meaning whoever entered the data typed the letters N/A rather than leaving the cell empty. R doesn't automatically recognise the text "N/A" as a missing value, it just reads it as the string "N/A" like any other word. So you need to tell R explicitly:
+```{r}
+students <- read_csv("https://pos.it/r4ds-students-csv", na = c("N/A", ""))
+
+students
+```
+Additonally: `Student ID` and `Full Name` columns have backticks, because they contain spaces which breaks R's normal naming rules. They are *non-syntactic* names. To refer to these variables, you need to surround them with backticks, `:
+```{r}
+students |> 
+  rename(
+    student_id = `Student ID`,
+    full_name = `Full Name`
+  )
+```
+
+## 4.7.3 Exercises
+
+**1. Identify what is wrong with each of the following inline CSV files. What happens when you run the code?
+
+```{r}
+read_csv("a,b\n1,2,3\n4,5,6")
+```
+The header row only specifies two column names (a and b) but each data row contains three values. This mismatch means R does not know where to put the third value, and instead merges the second and third values together into column b, giving 23 and 56 instead of 2, 3 and 5, 6. 
+
+```{r}
+read_csv("a,b,c\n1,2\n1,2,3,4")
+```
+In the header portion of the code it specifies 3 columns (a, b,c), but the first row only contains 2 values, the third value is filled in with an `NA`, The second row contains 4 values and therefore R does not know what to do with it and merges it with the third value to make 34. 
+
+```{r}
+read_csv("a,b\n\"1")
+```
+There are two problems. First, only one data value is provided for two columns, so column b has no value and is filled with NA and is read as logical data type. Second, the extra quote (\") causes R to read the value in column a as the string "1\n", rather than the number 1.
+
+```{r}
+read_csv("a,b\n1,2\na,b")
+```
+The second data row contains the values "a" and "b" which are the same as the column names, creating repetition. This appears to cause R to read both columns as character type rather than numeric. This then would mean 1 and 2 are stored as text rather than numbers.
+
+```{r}
+read_csv("a;b\n1;3")
+```
+Instead of using commas to separate values for read_csv, this code uses `;`, which R does not recognize. This instead creates a column name of `a;b` (stored as a character) and a single value in one row as `1;23 (stored as text).
 
