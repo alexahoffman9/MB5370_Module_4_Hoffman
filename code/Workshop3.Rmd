@@ -324,26 +324,26 @@ table3
 ```
 
 We need to split the rate column up into two variables: 1) cases and 2) population. separate() will take the name of the column we want to split and the names of the columns we want it split into:
-```{r}
+```{r message=FALSE, warning=FALSE}
 table3 %>% 
   separate(rate, into = c("cases", "population"))
 ```
 
 Note from [R4DS](https://tidyr.tidyverse.org/reference/separate.html): By default, separate() will split values wherever it sees a non-alphanumeric character (i.e. a character that isn’t a number or letter). For example, in the code above, `separate()` split the values of rate at the forward slash characters. If you wish to use a specific character to separate a column, you can pass the character to the sep argument of separate(). 
 Re-written code taking this into account:
-```{r}
+```{r message=FALSE, warning=FALSE}
 table3 %>%
   separate(rate, into = c("cases", "population"), sep = "/")
 ```
 
 In the new table, both `cases` and `population` are listed as characters, which is the functions default. As the values in the columns are actually numbers, need to specify to `separate()` to convert them using `convert = TRUE`, which lists them as integers.
-```{r}
+```{r message=FALSE, warning=FALSE}
 table3 %>% 
   separate(rate, into = c("cases", "population"), convert = TRUE)
 ```
 
 Can also split by position in a number:
-```{r}
+```{r message=FALSE, warning=FALSE}
 table3 %>% 
   separate(year, into = c("century", "year"), sep = 2)
 ```
@@ -366,7 +366,7 @@ And "2000" becomes "20" and "00"
 This is the inverse function of `separate()`, allowing for the combination of multiple columns into one. `unite()` takes a data frame, the name of the new variable and a set of columns to combine using `dplyr::select()`. 
 
 EX: Merging centry and year from above
-```{r}
+```{r message=FALSE, warning=FALSE}
 table5 %>%
   unite(new, century, year, sep = "")
 ```
@@ -386,7 +386,7 @@ The way data is missing matters to analysis:
 **Tools for creating or eliminating explicit values (NA cells)**
 
 R4DS [chapter 19](https://r4ds.hadley.nz/missing-values#explicit-missing-values): A common use for missing values is as a data entry convenience. When data is entered by hand, missing values sometimes indicate that the value in the previous row has been repeated (or carried forward):
-```{r}
+```{r message=FALSE, warning=FALSE}
 treatment <- tribble(
   ~person,           ~treatment, ~response,
   "Derrick Whitmore", 1,         7,
@@ -396,7 +396,7 @@ treatment <- tribble(
 )
 ```
 These values can be filled with `tidyr::fill()`, which works like `select()`, taking a set of columns:
-```{r}
+```{r message=FALSE, warning=FALSE}
 treatment |>
   fill(everything())
 ```
@@ -404,14 +404,14 @@ This treatment is sometimes called “last observation carried forward”, or **
 
 ## *4.6.2 Fixed values*
 Sometimes missing values represent some fixed and known value, most commonly 0. You can use `dplyr::coalesce()` to replace them:
-```{r}
+```{r message=FALSE, warning=FALSE}
 x <- c(1, 4, 5, 7, NA)
 coalesce(x, 0)
 ```
 
 sometimes you’ll encounter the opposite problem where some other concrete value actually represents a missing value. This typically happens when data is generated from an older software that can’t properly represent missing values so it uses something like 99 or -999 in place of the missing value. You can fix this with `dplyr::na_if()`:
 *Note to self:This happened with some data from my thesis analysis*
-```{r}
+```{r message=FALSE, warning=FALSE}
 x <- c(1,4,5,7,-99)
 na_if(x, -99)
 ```
@@ -419,7 +419,7 @@ na_if(x, -99)
 ## *4.6.3 NaN*
 
 One special type of missing value worth mentioning is NaN or Not a Number. It typically behaves the same as NA but in some rare cases you may need to distinguish it using `is.nan(x)`:
-```{r eval=FALSE}
+```{r message=FALSE, warning=FALSE, eval=FALSE}
 x <- c(NA, NaN)
 x * 10
 #> [1]  NA NaN
@@ -445,7 +445,7 @@ If you specifically need to know whether a value is NaN rather than just any kin
 Missing values can be implicitly missing, if an entire row of data is just absent from the data.
 
 Example of the difference:
-```{r}
+```{r message=FALSE, warning=FALSE}
 stocks <- tibble(
   year  = c(2020, 2020, 2020, 2020, 2021, 2021, 2021),
   qtr   = c(   1,    2,    3,    4,    2,    3,    4),
@@ -461,7 +461,7 @@ The dataset has 2 missing observations:
 Sometimes you want to make implicit missings explicit in order to have something physical to work with. In other cases, explicit missings are forced upon you by the structure of the data and you want to get rid of them. Remember how we did this when we used`pivot_wider()`?
 
 Here’s another example where if we pivot `stocks` wider to put the quarter in the columns, both missing values become explicit:
-```{r}
+```{r message=FALSE, warning=FALSE}
 stocks |>
   pivot_wider(
   names_from = qtr, 
@@ -490,7 +490,7 @@ students <- read_csv("C://data/students.csv")
 ```
 
 To use `read_csv()` this is an example directly loaded from the textbook (https://pos.it/r4ds-students-csv)
-```{r}
+```{r message=FALSE, warning=FALSE}
 students <- read_csv("https://pos.it/r4ds-students-csv")
 ```
 When you run `read_csv()`, it prints out a message telling you the number of rows and columns of data, the delimiter that was used, and the column specifications (names of columns organized by the type of data the column contains). It also prints out some information about retrieving the full column specification and how to quiet this message. This message is an integral part of `readr`.
@@ -503,19 +503,19 @@ Once you read data in, the first step should include assessing whether it is tid
 
 You will also need to check whether the data are valid. Are there any odd variables? Things that seems strange, like spelling errors or some other issue that R will have with it? 
 Let’s take another look at the students data with that in mind.
-```{r}
+```{r message=FALSE, warning=FALSE}
 students
 ```
 
 The N/A problem
 In the favourite.food column, student 3 has "N/A" written as text — meaning whoever entered the data typed the letters N/A rather than leaving the cell empty. R doesn't automatically recognise the text "N/A" as a missing value, it just reads it as the string "N/A" like any other word. So you need to tell R explicitly:
-```{r}
+```{r message=FALSE, warning=FALSE}
 students <- read_csv("https://pos.it/r4ds-students-csv", na = c("N/A", ""))
 
 students
 ```
 Additonally: `Student ID` and `Full Name` columns have backticks, because they contain spaces which breaks R's normal naming rules. They are *non-syntactic* names. To refer to these variables, you need to surround them with backticks, `:
-```{r}
+```{r message=FALSE, warning=FALSE}
 students |> 
   rename(
     student_id = `Student ID`,
@@ -525,30 +525,309 @@ students |>
 
 ## 4.7.3 Exercises
 
-**1. Identify what is wrong with each of the following inline CSV files. What happens when you run the code?
+**1. Identify what is wrong with each of the following inline CSV files. What happens when you run the code?**
 
-```{r}
+```{r message=FALSE, warning=FALSE}
 read_csv("a,b\n1,2,3\n4,5,6")
 ```
 The header row only specifies two column names (a and b) but each data row contains three values. This mismatch means R does not know where to put the third value, and instead merges the second and third values together into column b, giving 23 and 56 instead of 2, 3 and 5, 6. 
 
-```{r}
+```{r message=FALSE, warning=FALSE}
 read_csv("a,b,c\n1,2\n1,2,3,4")
 ```
 In the header portion of the code it specifies 3 columns (a, b,c), but the first row only contains 2 values, the third value is filled in with an `NA`, The second row contains 4 values and therefore R does not know what to do with it and merges it with the third value to make 34. 
 
-```{r}
+```{r message=FALSE, warning=FALSE}
 read_csv("a,b\n\"1")
 ```
 There are two problems. First, only one data value is provided for two columns, so column b has no value and is filled with NA and is read as logical data type. Second, the extra quote (\") causes R to read the value in column a as the string "1\n", rather than the number 1.
 
-```{r}
+```{r message=FALSE, warning=FALSE}
 read_csv("a,b\n1,2\na,b")
 ```
 The second data row contains the values "a" and "b" which are the same as the column names, creating repetition. This appears to cause R to read both columns as character type rather than numeric. This then would mean 1 and 2 are stored as text rather than numbers.
 
-```{r}
+```{r message=FALSE, warning=FALSE}
 read_csv("a;b\n1;3")
 ```
 Instead of using commas to separate values for read_csv, this code uses `;`, which R does not recognize. This instead creates a column name of `a;b` (stored as a character) and a single value in one row as `1;23 (stored as text).
 
+# 4.8 Learning relational data
+## *4.8.1 What is relational data?*
+It is a collection of multiple data tables. in a given dataset or in a project that are related in some ways.
+
+Relational data is when a dataset contains multiple tables that are linked to each other. The relationships between these tables are just as important as the tables themselves, as combining them is often how you answer your research questions.
+
+For example, if you have a table of population by country and want to summarise by continent, you could join it with a second table that lists which continent each country belongs to — linking them through the shared country column.
+
+To work with relational data, dplyr provides three families of functions:
+
+  1. **Mutating joins** — add new columns to one table using matching values from another
+  2. **Filtering joins** — filter rows in one table based on whether they match rows in another
+  3. **Set operations** — combine or compare tables by treating rows as set elements
+  
+EX: `nycflights13` package dataset.
+```{r message=FALSE, warning=FALSE}
+library(nycflights13)
+
+airlines #lets you look up the full carrier name from its abbreviated code
+
+airports #gives information about each airport, identified by the FAA airport code
+
+planes #gives information about each plane, identified by its tailnum
+
+weather #gives the weather at each NYC airport for each hour
+```
+How these relate, for `nycflights13`:
+ 
+  - `flights` connects to `planes` via a single variable, `tailnum`.
+  - `flights` connects to `airlines` through the `carrier` variable.
+  - `flights` connects to `airports` in two ways: via `origin` and `dest` variables.
+  - `flights` connects to `weather` via `origin` (the location), and `year`, `month`, `day` and `hour` (the time).
+
+## *4.8.2 Joining datasets*
+We can join these datasets by identifying the **keys**.
+
+There are two types:
+
+  - Primary key — uniquely identifies each row in its own table. For example, tailnum in the planes table uniquely identifies each plane.
+  - Foreign key — matches a primary key in another table. For example, tailnum in the flights table links each flight to a plane in the planes table.
+
+Sometimes you need multiple variables together to form a key — for example, identifying a weather observation requires year, month, day, hour and origin combined.
+
+Once you've identified your primary keys it's good practice to verify they are truly unique by using count() and checking no value appears more than once:
+```{r message=FALSE, warning=FALSE}
+planes %>% 
+  count(tailnum) %>% 
+  filter(n > 1) 
+
+weather %>% 
+  count(year, month, day, hour, origin) %>% 
+  filter(n > 1)
+```
+
+Sometimes a table doesn’t have an explicit primary key: each row is an observation, but no combination of variables reliably identifies it. 
+
+For example, what’s the primary key in the flights table? You might think it would be the date plus the flight or tail number, but neither of those are unique:
+```{r message=FALSE, warning=FALSE}
+flights %>% 
+  count(year, month, day, flight) %>% 
+  filter(n > 1)
+
+flights %>% 
+  count(year, month, day, tailnum) %>% 
+  filter(n > 1)
+```
+
+If a table lacks a primary key, it’s sometimes useful to add one with `mutate()` and `row_number()`. That makes it easier to match observations if you’ve done some filtering and want to check back in with the original data. This is called a **surrogate key**.
+
+*A primary key and its corresponding foreign key form a relation between two tables.* There are a few types:
+
+  - One-to-many — the most common type. For example, each flight has one plane but each plane has many flights.
+  - One-to-one — a special case of one-to-many where each record matches exactly one record in the other table.
+  - Many-to-many — for example, airlines and airports, where each airline flies to many airports and each airport hosts many airlines. These are typically broken down into two one-to-many relationships.
+
+## *4.8.3 Mutating joins*
+
+Mutating joins combine variables from two tables by matching rows using keys, then adding the new columns to the right side of your table — similar to how mutate() adds new columns.
+
+To make the joins easier to see on screen, we'll first create a narrower subset of the nycflights13 data. You can also use View() in RStudio to open the table in a new tab if the columns don't all fit on one screen.
+```{r message=FALSE, warning=FALSE}
+flights2 <- flights %>% 
+  select(year:day, hour, origin, dest, tailnum, carrier)
+```
+
+Mutating function `left_join()`
+```{r message=FALSE, warning=FALSE}
+flights2 %>%
+  select(-origin, -dest) %>% 
+  left_join(airlines, by = "carrier")
+```
+
+This has asked it to add the full airline name to the flights2 data by combining the airlines and flights2 data frames with left_join(). The column name has been added on the right and contains the carrier’s full name.
+
+This same result could'v been achieved using the R base mutate() function (see code below), but the code is much more involved and can get messy when matching multiple variables. This is why we use a “mutating join” to make life a little easier.
+```{r message=FALSE, warning=FALSE}
+flights2 %>%
+  select(-origin, -dest) %>% 
+  mutate(name = airlines$name[match(carrier, airlines$carrier)])
+```
+Visualising mutating joins in detail (refer to textbook/workbook for images):
+```{r message=FALSE, warning=FALSE}
+x <- tribble(
+  ~key, ~val_x,
+     1, "x1",
+     2, "x2",
+     3, "x3"
+)
+y <- tribble(
+  ~key, ~val_y,
+     1, "y1",
+     2, "y2",
+     4, "y3"
+)
+```
+There are two categories of joins: inner and outer.
+
+An **inner join** matches rows where the key exists in both tables. Any rows that don't have a matching key in the other table are dropped entirely. This makes inner joins risky for analysis as it's easy to lose observations without realising it.
+
+The output of an inner join is a new data frame that contains the key, the x values, and the y values. The key is specified using the `by` argument to tell dplyr which variable to match on.
+```{r message=FALSE, warning=FALSE}
+x %>% 
+  inner_join(y, by = "key")
+```
+
+The other category of join is the **outer join** which keeps observations that appear in at least one of the tables. There are three types of outer joins:
+
+  - `left_join()` keeps all observations in x (we’ve seen this in our first example)
+  - `right_join()` keeps all observations in y
+  - `full_join()` keeps all observations in x and y
+
+These joins work by adding an additional “virtual” observation to each table. This observation has a key that always matches (if no other key matches), and a value filled with NA. *The left join should be your default join, because it preserves the original observations even when there isn’t a match.*
+
+So far we have assumed keys are unique, but this isn't always the case. There are two scenarios:
+
+  1. One table has duplicate keys — this is common in one-to-many relationships, for example when you want to add information from a lookup table where one key matches many rows in another table.
+
+```{r message=FALSE, warning=FALSE}
+x <- tribble(
+  ~key, ~val_x,
+     1, "x1",
+     2, "x2",
+     2, "x3",
+     1, "x4"
+)
+y <- tribble(
+  ~key, ~val_y,
+     1, "y1",
+     2, "y2"
+)
+left_join(x, y, by = "key")
+```
+
+  2. Both tables have duplicate keys. This is usually an error because in neither table do the keys uniquely identify an observation. 
+When you join two tables that both have duplicate keys, R doesn't know which row to match to which, so it creates every possible combination of matching rows — this is called a Cartesian product:
+```{r message=FALSE, warning=FALSE}
+x <- tribble(
+  ~key, ~val_x,
+     1, "x1",
+     2, "x2",
+     2, "x3",
+     3, "x4"
+)
+
+y <- tribble(
+  ~key, ~val_y,
+     1, "y1",
+     2, "y2",
+     2, "y3",
+     3, "y4"
+)
+
+left_join(x, y, by = "key")
+```
+In the example above, key 2 appears twice in both x and y. So when joining, R matches every key 2 row in x with every key 2 row in y, giving you 4 rows for key 2 alone (x2+y2, x2+y3, x3+y2, x3+y3). This can cause your data to balloon in size unexpectedly and produce misleading results, which is why duplicate keys in both tables is usually something to investigate and fix rather than work around.
+
+So far we have joined tables using a single variable with the same name in both tables, using `by = "key"`. But there are other ways to specify how tables should be joined using the `by` argument:
+
+  - The *default*, `by = NULL`, uses all variables that appear in both tables, the natural join. For example, the flights and weather tables match on their common variables: year, month, day, hour and origin.
+```{r message=FALSE, warning=FALSE}
+flights2 %>% 
+  left_join(weather)
+```
+  - You can specify a single variable to join by using by = "x". This is useful when two tables share multiple common variable names but you only want to join on one of them. For example, flights and planes both have a year column but they mean different things (year of flight vs year of manufacture), so you only want to join by tailnum. Any other shared variable names will be kept in the output but renamed with a suffix to distinguish them.
+```{r message=FALSE, warning=FALSE}
+flights2 %>% 
+  left_join(planes, by = "tailnum")
+```
+  - A named character vector: by = c("a" = "b"). This will match variable a in table x to variable b in table y. The variables from x will be used in the output.
+
+EX: If we want to draw a map. We need to combine the flights data with the airports data which contains the location (lat and lon) of each airport. 
+Each flight has an origin and destination airport, so we need to specify which one we want to join to:
+```{r message=FALSE, warning=FALSE}
+flights2 %>% 
+  left_join(airports, c("dest" = "faa"))
+```
+The format is always c("name in left table" = "name in right table").
+The result uses the name from the left table (dest) in the output, and drops the right table's name (faa).
+
+# 4.9 Pipes
+Pipes (`%>%` or `|>`) allow you to chain multiple data wrangling steps together in a single, readable sequence rather than writing each step separately.
+
+Instead of saving the result of each step as a new variable, pipes pass the output of one function directly into the next — making your code shorter, cleaner and easier to read like a sentence.
+
+We have already used several dplyr functions like filter(), group_by(), summarise() and mutate() as separate steps. Pipes let us combine all of these into one flowing statement.
+
+The original pipe `%>%` comes from the magrittr package in the tidyverse, but R now has a built-in native pipe |> that does the same thing. It is good practice to use `|>` going forward.
+
+Let’s explore pipes using code to tell a kids story about a little bunny named Foo Foo:
+  
+    Little bunny Foo Foo
+    Went hopping through the forest
+    Scooping up the field mice
+    And bopping them on the head
+
+```{r eval=FALSE}
+foo_foo <- little_bunny()
+```
+And we’ll use a function for each key verb: `hop()`, `scoop()`, and `bop()`. Using this object and these verbs, there are (at least) four ways we could retell the story in code:
+
+  1. Save each intermediate step as a new object.
+  2. Overwrite the original object many times.
+  3. Compose functions.
+  4. Use the pipe.
+
+Let’s do them all sequentially now.
+  
+  1. Saving each step as a new object:
+```{r eval=FALSE}
+foo_foo_1 <- hop(foo_foo, through = forest)
+foo_foo_2 <- scoop(foo_foo_1, up = field_mice)
+foo_foo_3 <- bop(foo_foo_2, on = head)
+```
+
+The main downside of this form is that it forces you to name each intermediate element. If there are natural names, this is a good idea, and you should do it. But many times, like in this example, there aren’t natural names, and you add numeric suffixes to make the names unique. That leads to two problems:
+
+  - The code is cluttered with unimportant names
+  - You have to carefully increment the suffix on each line.
+
+  2. Overwrite the original object instead of creating intermediate objects at each step.
+```{r eval=FALSE}
+foo_foo <- hop(foo_foo, through = forest)
+foo_foo <- scoop(foo_foo, up = field_mice)
+foo_foo <- bop(foo_foo, on = head)
+```
+
+This is less typing (and less thinking), so you’re less likely to make mistakes. 
+However, there are two problems:
+
+  - Debugging is painful: if you make a mistake you’ll need to re-run the complete pipeline from the beginning.
+  - The repetition of the object being transformed (we’ve written foo_foo six times!) obscures what’s changing on each line.
+  
+  3. String the function calls together
+```{r eval=FALSE}
+bop(
+  scoop(
+    hop(foo_foo, through = forest),
+    up = field_mice
+  ), 
+  on = head
+)
+```
+
+Here the disadvantage is that you have to read from inside-out, from right-to-left, and that the arguments end up spread far apart (evocatively called the dagwood sandwich problem). In short, this code is hard for a human to consume.
+
+  4. USE A PIPE!!!
+```{r eval=FALSE}
+foo_foo %>%
+  hop(through = forest) %>%
+  scoop(up = field_mice) %>%
+  bop(on = head)
+```
+This form focuses on verbs, not nouns. You can read this series of function compositions like it’s a set of imperative actions. Foo Foo hops, then scoops, then bops.
+
+While pipes are great, they are not always the best or only tool for the job. Here are three examples where you might want to consider a tool other than the pipe:
+
+  - Your pipes are longer than (say) ten steps. In that case, create intermediate objects with meaningful names. That will make debugging easier and it makes it easier to understand your code.
+  - You have multiple inputs or outputs. If there isn’t one primary object being transformed, but two or more objects being combined together, don’t use the pipe.
+  - You are starting to think about a directed graph with a complex dependency structure. Pipes are fundamentally linear and expressing complex relationships with them will typically yield confusing code.
