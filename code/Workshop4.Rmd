@@ -11,7 +11,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 
 # 5.3 R and how we use it for spatial analysis
-R can also be used as a Geographic Information System (GIS), capable of doing most things that ArcGIS or QGIS can do — and for free.
+R can also be used as a Geographic Information System (GIS), capable of doing most things that ArcGIS or QGIS can do, and for free.
 The key advantages of doing spatial analysis in R are:
 
   - Your workflow is written as a script, making it easy to reproduce, improve and share
@@ -32,18 +32,18 @@ library(leaflet)
 library(tmap)
 library(mgcv)
 ```
+
 # 5.5 Introduction to the problem
 Here we adapt A/Prof Brown’s statement of the problem. 
 
   *You finally have a chance to meet one of your academic heroes. On meeting her, she mentions that she’s read your first PhD paper on zooplankton biogeography. She said she was particularly impressed with the extent of R analysis in your biogeography paper and goes on to suggest you collaborate on a new database she is ‘working with’.*
-  *The database has extensive samples of copepod richness throughout Australia’s oceans and the Southern Ocean too. She has a hypothesis - that like many organisms, copepod species richness (which is the number of unique species) will be higher in warmer waters than cooler waters. But she needs help sorting out the data.*
+  *The database has extensive samples of copepod richness throughout Australia’s oceans and the Southern Ocean too. She has a hypothesis, that like many organisms, copepod species richness (which is the number of unique species) will be higher in warmer waters than cooler waters. But she needs help sorting out the data.*
   *First and foremost, she wants you to use your skills in R to help develop a map that could help you ‘get a look at’ whether this hypothesis is worth pursuing.* 
 
-**Your task now is - using R - to make a map of copepods in relation to temperature.**
+**Your task now is, using R, to make a map of copepods in relation to temperature.**
 
 # 5.6 Downloading and loading the spatial dataset
-
-  *Your hero professor has sent you the data files in a .zip format. The spreadsheet copepods-raw.csv has measurements of copepod species richness from around Australia. Copepods are a type of zooplankton, perhaps the most abundant complex animals on the planet and an important part of ocean food-webs. *
+  *Your hero professor has sent you the data files in a .zip format. The spreadsheet copepods_raw.csv has measurements of copepod species richness from around Australia. Copepods are a type of zooplankton, perhaps the most abundant complex animals on the planet and an important part of ocean food-webs. *
  *Like many distracted academics, she has also sent you some other data, but has not explained what it is all for yet. You’ll have to figure that out.*
   *Copepod species were counted using samples taken from a Continuous Plankton Recorder. The CPR was towed behind ‘ships of opportunity’ (including commercial and research vessels). ‘Silks’ run continuously through the CPR and the plankton are trapped onto the silks, kind of like a printer that runs all day and night to record plankton in the ocean.*
   *So these data are what we’ll work with today. As a realistic learning experience, be ready to face some errors in the data received from our distracted professor*!
@@ -54,6 +54,7 @@ library(readr)
 dat <- read_csv("/Users/alexa/Desktop/Data_Analysis/MB5370_Techniques/MB5370_Module_4_Hoffman/data/data-for-course/copepods_raw.csv")
 dat
 ```
+
 # 5.7 Data exploration
 Since we don’t know this copepod data well and we haven’t been told much about it (and it lacks any metadata on what it all means), we need to thoroughly check it and make sure we understand it.
 
@@ -65,7 +66,8 @@ ggplot(dat) +
   aes(x = longitude, y = latitude, color = richness_raw) +
   geom_point()
 ```
-This plot shows the location of every segment, coloured by species richness. Notice that the x and y axes are longitude and latitude — essentially giving us a simple map, since ggplot just plots points on an x-y grid.
+
+This plot shows the location of every segment, coloured by species richness. Notice that the x and y axes are longitude and latitude, essentially giving us a simple map, since ggplot just plots points on an x-y grid.
 But this is not a true map, it doesn't have a projection, therefore the real distances between these points when measured with a ruler are probably wrong.
 
 Looking at the richness in a non-spatial way. Latitude on the x-axis and richness on the y.
@@ -74,6 +76,7 @@ ggplot(dat, aes(x = latitude, y = richness_raw)) +
   stat_smooth() + 
   geom_point()
 ```
+
 By visualising your data it will help you understand it and be able to ask questions. In this example there is clearly a shift in this graph around latitude -40. This is when you would to ask your collaborator questions.
 
 # 5.8 Getting going with maps
@@ -123,6 +126,7 @@ Looking back at what we created:
 ```{r message=FALSE, warning=FALSE}
 sdat
 ```
+
 *The data table in sdat looks much like dat did, but note it now has a geometry column. This is where the coordinates (just one point for each data row) are stored. More complex simple features could have a series of points, lines, polygons or other types of shapes nested in each row of the geometry column.*
 
 *The nice thing about sf is that because the data is basically a dataframe with a geometry, we can use all the operations that work on dataframes on sf simple features collections.*
@@ -152,9 +156,10 @@ In this module we will use `tmap`. `tmap` works similarly to ggplot2 in that we 
 tm_shape(sdat) + 
   tm_dots(col = "richness_raw")
 ```
+
 Customizing:
-Adding in a color scale to display richness as a continuous varible.
-```{r}
+Adding in a color scale to display richness as a continuous variable.
+```{r message=FALSE, warning=FALSE}
 library(viridis)
 tm1 <- tm_shape(sdat) +
   tm_dots(fill = "richness_raw", fill.scale = tm_scale(values = "viridis"))
@@ -162,7 +167,7 @@ tm1 <- tm_shape(sdat) +
 tm1
 ```
 
-```{r}
+```{r message=FALSE, warning=FALSE}
 tmap_save(tm1, filename = "Richness-map.png", 
           width = 600, height = 600,
           device = png)
@@ -175,19 +180,19 @@ tmap_save(tm1, filename = "Richness-map.png",
 ## *5.13.1 Loading shapefile*
 Unlike our previous csv data with coordinate columns, the copepod polygon data is stored as a shapefile (.shp).
 
-Shapefiles are considered an outdated format — they are inefficient and actually consist of multiple files, meaning data can easily be lost if files are transferred incomplete. A better alternative is the Geopackage (.gpkg) format, which stores everything in a single compressed file.
+Shapefiles are considered an outdated format, they are inefficient and actually consist of multiple files, meaning data can easily be lost if files are transferred incomplete. A better alternative is the Geopackage (.gpkg) format, which stores everything in a single compressed file.
 
 We are using shapefiles here because they are still the most common format you will encounter in practice, but it is good practice to save your own spatial data as .gpkg going forward.
 
 Shapefiles can be read into R using `st_read()`, which works like `read_csv()` but for spatial files.
 
-```{r}
+```{r message=FALSE, warning=FALSE}
 aus <- st_read("/Users/alexa/Desktop/Data_Analysis/MB5370_Techniques/MB5370_Module_4_Hoffman/data/data-for-course/spatial-data/Aussie/Aussie.shp")
 
 aus #already spatially aware
 ```
 
-```{r}
+```{r message=FALSE, warning=FALSE}
 shelf <- st_read("/Users/alexa/Desktop/Data_Analysis/MB5370_Techniques/MB5370_Module_4_Hoffman/data/data-for-course/spatial-data/aus_shelf/aus_shelf.shp")
 
 shelf #already spatially aware
@@ -195,7 +200,7 @@ shelf #already spatially aware
 
 ## *5.13.2 Mapping your polygons*
 `tmap` makes it very straightforward to make a map of polygons:
-```{r}
+```{r message=FALSE, warning=FALSE}
 tm_shape(shelf) + 
   tm_polygons()
 ```
@@ -203,7 +208,7 @@ tm_shape(shelf) +
 Remember we can make a thematic map by layering it up just as we do for plots in ggplot2. 
 
 To add more layers:
-```{r}
+```{r message=FALSE, warning=FALSE}
 tm_shape(shelf, bbox = sdat) + 
   tm_polygons() +
   tm_shape(aus) + 
@@ -218,12 +223,11 @@ tm_shape(shelf, bbox = sdat) +
 
 ## *5.14 Exploring t_map*
 
-Running the exercises from [here](https://r-tmap.github.io/tmap/articles/tmap-getstarted.html)
+Running the exercises from [here](https://r-tmap.github.io/tmap/articles/tmap-getstarted.html).
 
-```{r}
+```{r message=FALSE, warning=FALSE}
 library(tmap)
-## Breaking News: tmap 3.x is retiring. Please test v4, e.g. with
-## remotes::install_github('r-tmap/tmap')
+
 data("World")
 
 tm_shape(World) +
@@ -231,21 +235,23 @@ tm_shape(World) +
 
 ?'tmap-element'
 ```
-The `World` object is an `sf` spatial dataframe where each row has an associated polygon geometry. To plot it in `tmap` you first specify the data with `tm_shape()`, then add layers using `+` — in this case `tm_polygons()`. All `tmap` layer functions use the `tm_` prefix, making them easy to find in the documentation.
 
-**Interactive Maps**
+The `World` object is an `sf` spatial dataframe where each row has an associated polygon geometry. To plot it in `tmap` you first specify the data with `tm_shape()`, then add layers using `+` in this case `tm_polygons()`. All `tmap` layer functions use the `tm_` prefix, making them easy to find in the documentation.
+
+### Interactive Maps
 Each map can be plotted as a static image or viewed interactively using "plot" and "view" modes, respectively. The mode can be set with the function `tmap_mode`, and toggling between the modes can be done with the ‘switch’ `ttm()` (which stands for toggle thematic map).
-```{r}
+```{r message=FALSE, warning=FALSE}
 tmap_mode("view")
 
 tm_shape(World) +
     tm_polygons("HPI")
 ```
+
 This allows for zooming in and moving around the map.
 
-**Multiple shapes and layers**
+### Multiple shapes and layers
 A shape is a spatial object (with a class from `sf`, `sp`, `stars`, or `raster`). Multiple shapes and also multiple layers per shape can be plotted:
-```{r}
+```{r message=FALSE, warning=FALSE}
 data(World, metro, rivers, land)
 
 tmap_mode("plot")
@@ -259,9 +265,10 @@ tm_shape(metro) +
     tm_symbols(col = "red", size = "pop2020", size.scale = tm_scale_continuous(values.scale = .5)) +
 tm_legend(show = FALSE)
 ```
+
 Note: had to update the code using the suggestions R gave because some of the arguments were for the wrong version of tmap.
 
-**Facets**
+### Facets
 Facets can be created in three ways:
 
   1. By assigning multiple variable names to one aesthetic (in this example the first argument of `tm_polygons`):
@@ -272,8 +279,9 @@ tm_shape(World) +
     tm_facets(sync = TRUE, ncol = 2)
 ```
 
+
   2. By splitting the spatial data with the by argument of `tm_facets`:
-```{r}
+```{r message=FALSE, warning=FALSE}
 tmap_mode("plot")
 ## tmap mode set to plotting
 
@@ -288,8 +296,9 @@ tm_shape(NLD_muni) +
 #had to alter the varible being looked at bc 'pop_men' didn't exist in this version of the data
 ```
 
-  3. By using the tmap_arrange function:
-```{r}
+
+  3. By using the `tmap_arrange` function:
+```{r message=FALSE, warning=FALSE}
 tmap_mode("plot")
 ## tmap mode set to plotting
 
@@ -299,19 +308,20 @@ tm2 <- tm_shape(NLD_muni) + tm_bubbles(size = "population")
 
 tmap_arrange(tm1, tm2)
 ```
-**Basemaps and overlay tile maps**
+
+### Basemaps and overlay tile maps
 Tiled basemaps can be added with the layer function `tm_basemap`. Semi-transparent overlay maps (for example annotation labels) can be added with `tm_tiles`.
 
-```{r}
+```{r message=FALSE, warning=FALSE}
 tmap_mode("view")
 tm_basemap("Stadia.StamenWatercolor") +
 tm_shape(metro) + tm_bubbles(size = "pop2020", col = "red") +
 tm_tiles("Stadia.StamenTonerLabels")
 ```
 
-**Options and styles**
+### Options and styles
 The functions `tm_layout` and `tm_view` are used to specify the map layout and the interactive aspects respectively. These functions can be used in the same way as the layer functions, e.g.
-```{r}
+```{r message=FALSE, warning=FALSE}
 tmap_mode("plot")
 ## tmap mode set to plotting
 
@@ -322,15 +332,16 @@ tm_layout(bg.color = "skyblue", inner.margins = c(0, .02, .02, .02))
 
 These options, as well as a couple of others, can also be set within with `tmap_options`, which works in the same way as the base R function options. The main advantage is that these options are set globally, so they do not have to be specified in each map, for the duration of the session.
 
-```{r}
+```{r message=FALSE, warning=FALSE}
 tmap_options(bg.color = "black", legend.text.color = "black")
 
 tm_shape(World) +
   tm_polygons("HPI", fill.legend = tm_legend(title = "Happy Planet Index"))
 ```
+
 A style is a certain configuration of the tmap options.
 
-```{r}
+```{r message=FALSE, warning=FALSE}
 tmap_style("classic")
 ## tmap style set to "classic"
 ## other available styles are: "white", "gray", "natural", "cobalt", "col_blind", "albatross", "beaver", "bw", "watercolor"
@@ -339,7 +350,7 @@ tm_shape(World) +
     tm_polygons("HPI", fill.legend = tm_legend(title = "Happy Planet Index"))
 ```
 
-```{r}
+```{r message=FALSE, warning=FALSE, results='hide'}
 # see what options have been changed
 tmap_options_diff()
 ## current tmap options (style "classic") that are different from default tmap options (style "white"):
@@ -358,10 +369,11 @@ tmap_options_diff()
 # reset the options to the default values
 tmap_options_reset()
 ```
+
 New styles can be created; see `?tmap_options`.
 
-**Exporting maps**
-```{r}
+### Exporting maps
+```{r message=FALSE, warning=FALSE}
 tm <- tm_shape(World) +
     tm_polygons("HPI", fill.legend = tm_legend(title = "Happy Planet Index"))
 
@@ -372,7 +384,7 @@ tmap_save(tm, filename = "world_map.png")
 tmap_save(tm, filename = "world_map.html")
 ```
 
-**Shiny integration**
+### Shiny integration
 It is possible to use tmap in shiny:
 ```{r eval=FALSE}
 # in UI part:
@@ -384,14 +396,60 @@ output$my_tmap = renderTmap({
 })
 ```
 
-**Quick thematic map**
+### Quick thematic map
 Maps can also be made with one function call. This function is `qtm`:
-```{r}
+```{r message=FALSE, warning=FALSE}
 qtm(World, fill = "HPI", 
     fill.scale = tm_scale(values = "brewer.rd_yl_gn")) #updated with v4 syntax
 ```
 
-**Tips n Tricks**
-```{r}
+### Tips n Tricks
+```{r message=FALSE, warning=FALSE}
 tmap_tip()
 ```
+
+# 5.15 Customising copepod map
+```{r message=FALSE, warning=FALSE}
+tmap_mode("view")
+
+tm_shape(shelf, bbox = sdat) + 
+  tm_polygons(fill = "#1a5276") +
+tm_shape(aus) + 
+  tm_polygons(fill = "tan") +
+tm_shape(sdat) + 
+  tm_dots(fill = "richness_raw",
+          fill.scale = tm_scale_continuous(values = "-brewer.yl_or_br"),
+          fill.legend = tm_legend(title = "Species Richness"),
+          size = 0.5)
+```
+
+```{r message=FALSE, warning=FALSE}
+tmap_mode("view")
+
+tm_basemap("Esri.OceanBasemap") +
+tm_shape(sdat) + 
+  tm_dots(fill = "richness_raw",
+          fill.scale = tm_scale_continuous(values = "plasma"),
+          fill.legend = tm_legend(title = "Species Richness"),
+          size = 0.3)
+```
+**This is my final map!**
+```{r message=FALSE, warning=FALSE}
+tmap_mode("view")
+
+map <- tm_basemap("Esri.OceanBasemap") +
+tm_shape(shelf, bbox = sdat) + 
+  tm_polygons(fill = "#1a6b8a", fill_alpha = 0.4) +
+tm_shape(aus) + 
+  tm_polygons(fill = "#d4a96a", fill_alpha = 0.6) +
+tm_shape(sdat) + 
+  tm_dots(fill = "richness_raw",
+          fill.scale = tm_scale_continuous(values = "plasma"),
+          fill.legend = tm_legend(title = "Species Richness"),
+          size = 0.3)
+
+map
+
+tmap_save(map, filename = "copepod_richness_map.html")
+```
+
