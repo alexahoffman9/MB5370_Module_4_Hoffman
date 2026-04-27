@@ -1,8 +1,8 @@
 ---
-title: "MB5370 Module 04. Assignment 1 - Plot Deconstruction"
+title: "MB5370 Module 04. Assignment 2 - QFISH"
 author: "Alexa Hoffman"
 output: html_document
-date: "2026-03-05"
+date: "2026-04-26"
 editor_options: 
   markdown: 
     wrap: sentence
@@ -12,49 +12,81 @@ editor_options:
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-# 2.25 Assignment: Plot Deconstruction
+This assignment will focus on start to finish data cleaning to visualisation using QFISH data from the Queensland Government. I will be working with the Commercial Harvest dataset that focuses on the Tropical Rock Lobster fishery.
 
+### Data Loading
 ```{r message=FALSE, warning=FALSE}
 library(tidyverse)
-library(RColorBrewer)
 
 # Load data
-lgbtq <- read.csv("/Users/alexa/Desktop/Data_Analysis/MB5370_Techniques/MB5370_Module_4_Hoffman/data/lgbtq_acceptance.csv")
+harvest_data <- read.csv("/Users/alexa/Desktop/Data_Analysis/MB5370_Techniques/MB5370_Module_4_Hoffman/data/QFISH_Lobster_Harvest.csv")
 
-# Re-ordering most to least accepting
-lgbtq$relationship <- factor(lgbtq$relationship, 
-                              levels = c("Siblings", "Friends", "Parents", "Co-workers", "Extended family"))
+# View raw data structure
+head(harvest_data)
+tail(harvest_data)
 
-# Reference line data
-lgbtq_ref <- data.frame(
-  relationship = factor(c("Siblings", "Friends", "Parents", "Co-workers", "Extended family"),
-                        levels = c("Siblings", "Friends", "Parents", "Co-workers", "Extended family")),
-  all_lgbtq = c(69, 61, 46, 45, 27)
-)
+#reload in data with treating first row as data
+raw_data <- read.csv("/Users/alexa/Desktop/Data_Analysis/MB5370_Techniques/MB5370_Module_4_Hoffman/data/QFISH_Lobster_Harvest.csv", 
+                header = FALSE, stringsAsFactors = FALSE)
+```
 
-# Plot
-ggplot(data = lgbtq, mapping = aes(x = group, y = percent, fill = group)) +
-  geom_bar(stat = "identity", position = "dodge") +
-  geom_hline(data = lgbtq_ref, aes(yintercept = all_lgbtq),
-             linetype = "dashed", colour = "grey40",
-             inherit.aes = FALSE) +
-   scale_fill_brewer(palette = "Dark2") +
-  facet_wrap(~ relationship, nrow = 1) +
-  labs(
-    title = "Not all LGBTQ adults experience the same acceptance",
-    subtitle = "Transgender adults consistently report lower acceptance, particularly from parents and co-workers",
-    x = NULL,
-    y = "% saying all have been accepting",
-    fill = "Identity group",
-    caption = "Source: Pew Research Center, Jan. 8-19, 2025"
-  ) +
-  theme_classic() +
-  theme(
-    legend.position = "bottom",
-    axis.text.x = element_blank(),
-    axis.ticks.x = element_blank(),
-    strip.background = element_blank()
+### Tidying the dataset
+Need to select out just the tropical lobster data, removing 'cray tails' and 'unspecified'. Additionally, the first 5 lines of data are to be removed as they are invalid or metadata.
+```{r}
+lobster <- raw_data[5:nrow(raw_data), c(1, 6, 7, 8)]
+colnames(lobster) <- c("Year", "Licences", "Days", "Tonnes")
+
+# add species column
+lobster$Species <- "Tropical Rock Lobster"
+
+# clean out NAs and invalid data
+tidy_lobster <- lobster |>
+    filter(
+      !Year %in% c("N/A", "Grand Total"),
+      !Licences %in% c("N/A", ""),
+      !Days %in% c("N/A", ""),
+      !Tonnes %in% c("N/A", "")
+    )
+# check cleaned data
+head(tidy_lobster)
+tail(tidy_lobster)
+
+# view summary, checking variables
+summary(tidy_lobster)
+```
+
+These data columns are currently characters, they need to be transformed to numerical objects. 
+```{r}
+#switching character columns to numeric
+tidy_lobster <- tidy_lobster %>%
+  mutate(
+    Year = as.numeric(Year),
+    Licences = as.numeric(Licences),
+    Days = as.numeric(Days),
+    Tonnes = as.numeric(Tonnes)
   )
 
-ggsave("lgbtq_acceptance_plot.png", width = 10, height = 6, dpi = 300)
+summary(tidy_lobster) #fixed!
 ```
+
+### Data Visualisation
+For plotting these data I am looking at the total catch from the commercial harvest fishery for the tropical lobster fishery over time. This will allow to see fluctuations in total catch. 
+```{r}
+# Plot
+ggplot(data = tidy_lobster, mapping = aes(x = Year, y = Tonnes)) +
+  geom_line(color = "darkblue", size = 0.5) +
+  labs(
+    title = "Total catch (tonnes) of Tropical Rock Lobster",
+    subtitle = "From commerical harvest fisheries in Queensland, 1995 to 2025",
+    x = "Year",
+    y = "Catch (Tonnes)",
+    caption = "Source: QFISH commercial harvest data, accessed: April. 25, 2026."
+  ) +
+  scale_x_continuous(breaks = seq(min(tidy_lobster$Year, na.rm = TRUE), 
+                                  max(tidy_lobster$Year, na.rm = TRUE), 
+                                  by = 2)) +
+  theme_bw()
+
+ggsave("rocklobster_timeseries_plot.png", width = 10, height = 6, dpi = 300)
+```
+Extended caption: Annual commercial harvest of Tropical Rock Lobster in Queensland shows high inter-annual variability, rising from 1995 with peak catches reaching 243.89 tonnes in 2008 and a declining trend observed from 2022 to 2024.
